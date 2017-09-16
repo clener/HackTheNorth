@@ -21,9 +21,13 @@ class AndroidRenderer extends Component{
             position: "absolute",
             top: (element.y - offset)/4 + "px",
             left: element.x/4 + "px",
-            fontSize: element.textSize/4,
+            //fontSize: element.textSize/4,
             //color: element.textColor,
             //backgroundColor: element.backgroundColor
+        }
+
+        if (element.textSize) {
+            style = Object.assign(style, { fontSize: element.textSize/4 })
         }
 
         switch(element.type){
@@ -84,8 +88,11 @@ class AndroidRenderer extends Component{
             width: Math.ceil(element.width/4) + "px",
             position: "absolute",
             top: (element.y - offset)/4 + "px",
-            left: element.x/4 + "px",
-            fontSize: element.textSize/4,
+            left: element.x/4 + "px"
+        }
+
+        if (element.textSize) {
+            style = Object.assign(style, { fontSize: element.textSize/4 })
         }
 
         return (<div style={style}><ListItem>{element.text}</ListItem><Divider/></div>)
