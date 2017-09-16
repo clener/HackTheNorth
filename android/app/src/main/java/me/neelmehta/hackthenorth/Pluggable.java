@@ -6,6 +6,7 @@ import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ListView;
 import android.widget.TextView;
 
 import org.json.JSONArray;
@@ -33,7 +34,18 @@ public class Pluggable {
     private static JSONObject serialize(View view) throws JSONException {
         final JSONObject object = new JSONObject();
 
-        if (view instanceof ViewGroup) {
+        if (view instanceof ListView) {
+            object.put("type", "list");
+
+            ListView listView = (ListView) view;
+            final JSONArray array = new JSONArray();
+            for (int i = 0; i < listView.getChildCount(); i++) {
+                JSONObject child = serialize(listView.getChildAt(i));
+                array.put(child);
+            }
+
+            object.put("children", array);
+        } else if (view instanceof ViewGroup) {
             object.put("type", "group");
 
             ViewGroup viewGroup = (ViewGroup) view;
@@ -43,23 +55,26 @@ public class Pluggable {
                 array.put(child);
             }
 
-            object.put("elements", array);
+            object.put("children", array);
         } else if (view instanceof Button) {
             Button button = (Button) view;
 
             object.put("type", "button");
             object.put("text", button.getText());
+            object.put("textSize", button.getTextSize());
         } else if (view instanceof EditText) {
             EditText editText = (EditText) view;
 
             object.put("type", "input");
             object.put("text", editText.getText());
             object.put("hint", editText.getHint());
+            object.put("textSize", editText.getTextSize());
         } else if (view instanceof TextView) {
             TextView textView = (TextView) view;
 
             object.put("type", "text");
             object.put("text", textView.getText());
+            object.put("textSize", textView.getTextSize());
         } else {
             object.put("type", "unknown");
         }
