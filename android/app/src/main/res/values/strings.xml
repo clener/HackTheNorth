@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">HackTheNorth</string>
+    <string name="button">Button</string>
+    <string name="edittext_hint">EditText Hint</string>
 </resources>

@@ -1,0 +1,17 @@
+{
+  "name": "backend",
+  "version": "1.0.0",
+  "description": "",
+  "main": "cockroach.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "sequelize": "^4.8.4",
+    "sequelize-cockroachdb": "^1.0.2",
+    "socket.io": "^2.0.3",
+    "socket.io-p2p-server": "^1.2.0"
+  }
+}
