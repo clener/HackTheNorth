@@ -17,13 +17,13 @@ class IssueList extends Component {
     } = this.props;
     return (
       <Table>
-        <TableHeader>
+        <TableHeader displaySelectAll={false} adjustForCheckbox={false}>
           <TableRow>
             <TableHeaderColumn>Name</TableHeaderColumn>
             <TableHeaderColumn>Issue</TableHeaderColumn>
           </TableRow>
         </TableHeader>
-        <TableBody>
+        <TableBody displayRowCheckbox={false}>
           {issues.map((issue, i) => {
             return (
               <TableRow>
