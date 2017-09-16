@@ -76,12 +76,18 @@ io.on('connection', (client) => {
   // get all issues
   client.on("fetchAll", (data) => {
     console.log("Fetching all...");
+    console.log("Data object:")
+    console.log(JSON.stringify(data));
+    
     client.send(Issue.findAll())
   });
 
   // mobile:
   client.on("createIssue", (data) => {
     console.log("Creating issue...");
+    console.log("Data object:")
+    console.log(JSON.stringify(data));
+    
     Issue.create({
       name: data.name,
       problem: data.problem,
@@ -92,6 +98,9 @@ io.on('connection', (client) => {
   // mobile
   client.on("createSession", (data) => {
     console.log("Creating session...");
+    console.log("Data object:")
+    console.log(JSON.stringify(data));
+    
     Issue.findone({
       where: {
         uuid: data.uuid
@@ -116,6 +125,9 @@ io.on('connection', (client) => {
   // client | website
   client.on("joinRoom", (data) => {
     console.log("Joining room...");
+    console.log("Data object:")
+    console.log(JSON.stringify(data));
+    
     Session.findone({
       where: {
         uuid: data.uuid
@@ -126,8 +138,9 @@ io.on('connection', (client) => {
         client.join(data.uuid);
         p2p(client, null, data.uuid);
         console.log("Client and mobile are now in a p2p room.");
+        client.emit("You are both in a room now!");
       } else {
-        client.send("Failed to join room. Either issue doesn't exist, mobile isn't connected, or client is already connected");
+        client.emit("Failed to join room. Either issue doesn't exist, mobile isn't connected, or client is already connected");
       }
     });
 
@@ -162,6 +175,6 @@ io.on('connection', (client) => {
 
 
   client.on('disconnect', () => {
-    console.log("user disconnected");
+    console.log("User disconnected");
   });
 });
