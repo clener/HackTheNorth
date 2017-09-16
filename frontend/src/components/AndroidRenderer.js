@@ -15,19 +15,12 @@ class AndroidRenderer extends Component{
 
         var children = [];
         
-        var style = {
+        var placementStyle = {
             height: Math.ceil(element.height/4) + "px",
             width: Math.ceil(element.width/4) + "px",
             position: "absolute",
             top: (element.y - offset)/4 + "px",
             left: element.x/4 + "px",
-            //fontSize: element.textSize/4,
-            //color: element.textColor,
-            //backgroundColor: element.backgroundColor
-        }
-
-        if (element.textSize) {
-            style = Object.assign(style, { fontSize: element.textSize/4 })
         }
 
         switch(element.type){
@@ -39,7 +32,7 @@ class AndroidRenderer extends Component{
                     });
                 }
 
-                return (<div style={style}>{children.map((child, index) => { return (<div id={index}>{child}</div>);})}</div>)
+                return (<div style={placementStyle}>{children.map((child, index) => { return (<div id={index}>{child}</div>);})}</div>)
             case "list":
                 if(element.children != null && element.children.length > 0){
                     element.children.forEach((child) => {
@@ -48,24 +41,16 @@ class AndroidRenderer extends Component{
                     });
                 }
 
-                return (<MouseTracker style={style}><List>{children.map((child, index) => { return (<div id={index}>{child}</div>);})}</List></MouseTracker>)
+                return (<MouseTracker style={placementStyle}><List>{children.map((child, index) => { return (<div id={index}>{child}</div>);})}</List></MouseTracker>)
             case "button":
                 var placementStyle = {
                     position: "absolute",
                     top: (element.y - offset)/4 + "px",
                     left: element.x/4 + "px",
-                    fontSize: element.textSize/4,
+                    //fontSize: element.textSize/4,
                 }
 
-                var buttonStyle = { }
-
-
-                if(element.backgroundColor)
-                    placementStyle.background = element.backgroundColor;
-                if(element.textColor)
-                    placementStyle.color = element.textColor;
-
-                return <RaisedButton labelColor={element.textColor} backgroundColor={element.backgroundColor} style={placementStyle} buttonStyle={buttonStyle}>{element.text}</RaisedButton>
+                return <RaisedButton labelColor={element.textColor} backgroundColor={element.backgroundColor} style={placementStyle}>{element.text}</RaisedButton>
             case "input":
                 var inputStyle = {}
 
@@ -74,11 +59,28 @@ class AndroidRenderer extends Component{
                 if(element.textColor)
                     inputStyle.color = element.textColor;
 
-                return <TextField id={element.id} value={element.text} placeholder={element.hint} style={style} inputStyle={inputStyle}></TextField>
+                return <TextField id={element.id} value={element.text} placeholder={element.hint} style={placementStyle} inputStyle={inputStyle}></TextField>
             case "text":
-                return <text style={style}>{element.text}</text>
+                var placementStyle = {
+                    height: Math.ceil(element.height/4) + "px",
+                    width: Math.ceil(element.width/4) + "px",
+                    position: "absolute",
+                    top: (element.y - offset)/4 + "px",
+                    left: element.x/4 + "px",
+                }
+
+                if(element.backgroundColor)
+                    placementStyle.background = element.backgroundColor;
+                if(element.textColor)
+                    placementStyle.color = element.textColor;
+                if(element.textSize)
+                    placementStyle.fontSize = element.textSize/4;
+
+                return <text style={placementStyle}>{element.text}</text>
             default:
-                return <div style={style}>???</div>
+                
+
+                return <div style={placementStyle}>???</div>
         }       
     }
 
@@ -92,7 +94,8 @@ class AndroidRenderer extends Component{
         }
 
         if (element.textSize) {
-            style = Object.assign(style, { fontSize: element.textSize/4 })
+            //style = Object.assign(style, { fontSize: element.textSize/4 })
+            style.fontSize = element.textSize/4;
         }
 
         return (<div style={style}><ListItem>{element.text}</ListItem><Divider/></div>)
