@@ -7,6 +7,8 @@ import android.view.MenuItem;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 
+import me.neelmehta.hackthenorth.pluggable.Pluggable;
+
 public class MainActivity extends Activity {
     private static final String TAG = "MainActivity";
 
