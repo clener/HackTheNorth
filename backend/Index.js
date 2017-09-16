@@ -151,9 +151,10 @@ io.on('connection', (client) => {
         client.send("Failed to join room. Either issue doesn't exist, mobile isn't connected, or client is already connected");
       }
     });
+
     // updating isClientConnected to true
     Session.update({
-      res.isClientConnected: true,
+      isClientConnected: true,
     }).then(() => {})
   });
   /*client.on('reRender', (data) => {
