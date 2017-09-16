@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 //import logo from './logo.svg';
-import IssueList from './components/IssueList'
+import TableExample from './components/IssueList'
 import AndroidRenderer from './components/AndroidRenderer'
 import './App.css';
 
@@ -11,6 +11,7 @@ class App extends Component {
     return (
       <div className="AndroidRenderer">
         <AndroidRenderer data={issues} />
+        <TableExample />
       </div>
     );
   }
