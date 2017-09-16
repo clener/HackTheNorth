@@ -160,6 +160,20 @@ io.on('connection', (client) => {
     console.log("sending new data...");
     io.sockets.in(data.uuid).emit('receiveRender', data.view);
   });*/
+  client.on('endSession', (data) => {
+    console.log("Ending session...");
+    Session.findone({
+      where: {
+        uuid: data.uuid
+      }
+    }).then((res) => {
+      // closing connections
+      res.isClientConnected = false;
+      res.isMobileConnected = false;
+    });
+  });
+
+
   client.on('disconnect', () => {
     console.log("User disconnected");
   });
