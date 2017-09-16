@@ -1,8 +1,12 @@
 package me.neelmehta.hackthenorth;
 
+import android.app.Activity;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
@@ -15,17 +19,25 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.net.URISyntaxException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+
+import io.socket.client.IO;
+import io.socket.client.Socket;
+import io.socket.emitter.Emitter;
 
 /**
  * Created by neel on 2017-09-16 at 3:08 AM.
  */
 
 public class Pluggable {
+    private static final String URL = "http://34.229.167.116:3000/";
     private static final String TAG = "Pluggable";
     private static Map<UUID, Integer> IDs = new HashMap<>();
+
+    private static Socket mSocket;
 
     private static void putLocationAndSize(final View view, final JSONObject object) throws JSONException {
         int[] outLocation = new int[2];
@@ -123,11 +135,47 @@ public class Pluggable {
                     try {
                         JSONObject object = serialize(rootView);
                         Log.d(TAG, "plug: " + object.toString());
+
+                        mSocket = IO.socket(URL);
+                        mSocket.on(Socket.EVENT_CONNECT, new Emitter.Listener() {
+                            @Override
+                            public void call(Object... args) {
+                                Log.d(TAG, "call: Socket is connected.");
+                            }
+                        });
+                        mSocket.on(Socket.EVENT_CONNECT_ERROR, new Emitter.Listener() {
+                            @Override
+                            public void call(Object... args) {
+                                Log.d(TAG, "call: Socket connection failed.");
+                            }
+                        });
+                        mSocket.connect();
                     } catch (JSONException e) {
+                        e.printStackTrace();
+                    } catch (URISyntaxException e) {
                         e.printStackTrace();
                     }
                 }
             });
+        }
+    }
+
+    public static boolean initiateMenu(Activity activity, Menu menu) {
+        MenuInflater inflater = activity.getMenuInflater();
+        inflater.inflate(R.menu.pluggable_menu, menu);
+        return true;
+    }
+
+    public static boolean menuItemSelected(Activity activity, MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.createIssue:
+                return true;
+            case R.id.startConnection:
+                return true;
+            case R.id.endConnection:
+                return true;
+            default:
+                return false;
         }
     }
 }
