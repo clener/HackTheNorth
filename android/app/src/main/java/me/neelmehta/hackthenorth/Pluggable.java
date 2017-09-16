@@ -48,8 +48,6 @@ public class Pluggable {
         }
     }
 
-    private static String getGravity(View view) {}
-
     private static void serialize(View view, final SerializerCallbacks callbacks) throws JSONException {
         final JSONObject object = new JSONObject();
 
@@ -80,7 +78,10 @@ public class Pluggable {
             object.put("text", editText.getText());
             object.put("hint", editText.getHint());
         } else if (view instanceof TextView) {
+            TextView textView = (TextView) view;
+
             object.put("type", "text");
+            object.put("text", textView.getText());
         } else {
             object.put("type", "unknown");
         }
