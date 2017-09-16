@@ -44,6 +44,10 @@ ul {
 	}
 }
 
+.vertical_scroll {
+	width: 300px;
+	background-color: red;
+}
 
 .sortable-ghost {
 	opacity: .2;

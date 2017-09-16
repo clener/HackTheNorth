@@ -77,13 +77,18 @@ Session.sync({force: true}).then(function() {
 
 // Starting socket.io connection
 io.on('connection', (client) => {
+
+  // get all issues
+  client.on("fetchAll", (data) => {
+    client.send(Issue.findAll())
+  });
   
   // mobile:
   client.on("createIssue", (data) => {
     Issue.create({
       name: data.name, problem: data.problem, uuid: data.uuid
-    })
-  })
+    });
+  });
 
   // mobile
   client.on("createSession", (data) => {
@@ -113,8 +118,8 @@ io.on('connection', (client) => {
       else {
         client.send("Failed to join room. Either issue doesn't exist, mobile isn't connected, or client is already connected");
       }
-    })
-  })
+    });
+  });
   /*client.on('reRender', (data) => {
     console.log("sending new data...");
     io.sockets.in(data.uuid).emit('receiveRender', data.view);
