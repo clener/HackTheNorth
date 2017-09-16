@@ -15,12 +15,17 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
+
 /**
  * Created by neel on 2017-09-16 at 3:08 AM.
  */
 
 public class Pluggable {
     private static final String TAG = "Pluggable";
+    private static Map<UUID, Integer> IDs = new HashMap<>();
 
     private static void putLocationAndSize(final View view, final JSONObject object) throws JSONException {
         int[] outLocation = new int[2];
@@ -33,26 +38,19 @@ public class Pluggable {
         object.put("width", view.getWidth());
     }
 
-    private static String pad(String s) {
-        return (s.length() == 1) ? "0" + s : s;
-    }
-
-    private static String getHexColor(int color) {
-        String r = pad(Integer.toHexString(Color.red(color)));
-        String g = pad(Integer.toHexString(Color.green(color)));
-        String b = pad(Integer.toHexString(Color.blue(color)));
-        String a = pad(Integer.toHexString(Color.alpha(color)));
-
-        return "#" + r + g + b + a;
+    private static String getCSSColor(int color) {
+        return "rgba(" + Color.red(color) + "," +
+                Color.green(color) + "," + Color.blue(color) +
+                "," + Color.alpha(color) + ")";
     }
 
     private static void getTextViewProps(TextView view, JSONObject object) throws JSONException {
         object.put("text", view.getText());
         object.put("textSize", view.getTextSize());
-        object.put("textColor", getHexColor(view.getCurrentTextColor()));
+        object.put("textColor", getCSSColor(view.getCurrentTextColor()));
 
         if (view.getBackground() instanceof ColorDrawable) {
-            object.put("backgroundColor", ((ColorDrawable) view.getBackground()).getColor());
+            object.put("backgroundColor", getCSSColor(((ColorDrawable) view.getBackground()).getColor()));
         }
     }
 
@@ -70,11 +68,15 @@ public class Pluggable {
             color = ((ColorDrawable) viewGroup.getBackground()).getColor();
         }
 
-        object.put("backgroundColor", getHexColor(color));
+        object.put("backgroundColor", getCSSColor(color));
     }
 
     private static JSONObject serialize(View view) throws JSONException {
         final JSONObject object = new JSONObject();
+
+        UUID uuid = UUID.randomUUID();
+        IDs.put(uuid, view.getId());
+        object.put("id", uuid.toString());
 
         if (view instanceof ListView) {
             object.put("type", "list");
