@@ -5,6 +5,7 @@ var io = require('socket.io')(server);
 //io.use(p2pserver)
 
 server.listen(3000);
+console.log("Now listening on port 3000...");
 
 // Connect to CockroachDB through Sequelize.
 var sequelize = new Sequelize('reports', 'maxroach', '', {
@@ -24,10 +25,10 @@ var Issue = sequelize.define('issues', {
 // Define the "issues" table.
 Issue.sync({force: true}).then(function() {
   // Insert two rows into the "issues" table.
-  return Issue.bulkCreate([
+  /*return Issue.bulkCreate([
     {name: "name1", problem: "this is a real problem", uuid: "exampleUUID123"},
     {name: "name2", problem: "this is not a real problem", uuid: "exaaaampleUUID123"},
-  ]);
+  ]);*/
 }).then(function() {
   // Retrieve issues.
   return Issue.findAll();
@@ -36,10 +37,10 @@ Issue.sync({force: true}).then(function() {
   issues.forEach(function(issue) {
     console.log(issue.id + ' ' + issue.name);
   });
-  process.exit(0);
+  //process.exit(0);
 }).catch(function(err) {
   console.error('error: ' + err.message);
-  process.exit(1);
+  //process.exit(1);
 });
 
 // Define the Session model for the "sessions" table
@@ -56,12 +57,11 @@ var Session = sequelize.define('sessions', {
 // Define the "sessions" table.
 Session.sync({force: true}).then(function() {
   // Insert two rows into the "issues" table.
-  return Session.bulkCreate([
+  /*return Session.bulkCreate([
     {isMobileConnected: true, isClientConnected: false, uuid: "me stupid"},
     {isMobileConnected: false, isClientConnected: true, uuid: "me maybe not so stupid"},
-  ]);
+  ]);*/
 }).then(function() {
-  console.log("heyyy")
   // Retrieve issues.
   return Session.findAll();
 }).then(function(sessions) {
@@ -69,10 +69,10 @@ Session.sync({force: true}).then(function() {
   sessions.forEach(function(session) {
     console.log(session.id + ' ' + session.isClientConnected + ' ' + session.isMobileConnected);
   });
-  process.exit(0);
+  //process.exit(0);
 }).catch(function(err) {
   console.error('error: ' + err.message);
-  process.exit(1);
+  //process.exit(1);
 });
 
 // Starting socket.io connection
@@ -80,11 +80,13 @@ io.on('connection', (client) => {
 
   // get all issues
   client.on("fetchAll", (data) => {
+    console.log("Fetching all...");
     client.send(Issue.findAll())
   });
   
   // mobile:
   client.on("createIssue", (data) => {
+    console.log("Creating issue...");
     Issue.create({
       name: data.name, problem: data.problem, uuid: data.uuid
     });
@@ -92,6 +94,7 @@ io.on('connection', (client) => {
 
   // mobile
   client.on("createSession", (data) => {
+    console.log("Creating session...");
     Issue.findone({ where: { uuid: data.uuid } }).then((res) => {
       if (res != null) {
         // create session entry if issue exists
@@ -109,11 +112,13 @@ io.on('connection', (client) => {
 
   // client | website
   client.on("joinRoom", (data) => {
+    console.log("Joining room...");
     Session.findone({ where: { uuid: data.uuid}}).then((res) => {
       if (res != null && res.isMobileConnected && !res.isClientConnected) {
         // connect if issue exists, mobile connected, and no client/website is connected
         client.join(data.uuid);
         p2p(client, null, data.uuid);
+        console.log("Client and mobile are now in a p2p room.");
       }
       else {
         client.send("Failed to join room. Either issue doesn't exist, mobile isn't connected, or client is already connected");
