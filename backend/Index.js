@@ -2,7 +2,6 @@ var Sequelize = require('sequelize-cockroachdb');
 var server = require('http').createServer();
 var p2p = require('socket.io-p2p-server').Server;
 var io = require('socket.io')(server);
-//io.use(p2pserver)
 
 server.listen(3000);
 console.log("Now listening on port 3000...");
@@ -32,12 +31,6 @@ var Issue = sequelize.define('issues', {
 Issue.sync({
   force: true
 }).then(function () {
-  // Insert two rows into the "issues" table.
-  /*return Issue.bulkCreate([
-    {name: "name1", problem: "this is a real problem", uuid: "exampleUUID123"},
-    {name: "name2", problem: "this is not a real problem", uuid: "exaaaampleUUID123"},
-  ]);*/
-}).then(function () {
   // Retrieve issues.
   return Issue.findAll();
 }).then(function (issues) {
@@ -45,15 +38,12 @@ Issue.sync({
   issues.forEach(function (issue) {
     console.log(issue.id + ' ' + issue.name);
   });
-  //process.exit(0);
 }).catch(function (err) {
   console.error('error: ' + err.message);
-  //process.exit(1);
 });
 
 // Define the Session model for the "sessions" table
 var Session = sequelize.define('sessions', {
-  //id: { type: Sequelize.INTEGER, primaryKey: true },
   isMobileConnected: {
     type: Sequelize.BOOLEAN
   },
@@ -65,18 +55,9 @@ var Session = sequelize.define('sessions', {
   },
 });
 
-// Assigning uuid value from Issue model to Session
-//Session.belongsTo(Issue, { foreignKey: "uuid", targetKey: "uuid"});
-
 // Define the "sessions" table.
 Session.sync({
   force: true
-}).then(function () {
-  // Insert two rows into the "issues" table.
-  /*return Session.bulkCreate([
-    {isMobileConnected: true, isClientConnected: false, uuid: "me stupid"},
-    {isMobileConnected: false, isClientConnected: true, uuid: "me maybe not so stupid"},
-  ]);*/
 }).then(function () {
   // Retrieve issues.
   return Session.findAll();
@@ -85,10 +66,8 @@ Session.sync({
   sessions.forEach(function (session) {
     console.log(session.id + ' ' + session.isClientConnected + ' ' + session.isMobileConnected);
   });
-  //process.exit(0);
 }).catch(function (err) {
   console.error('error: ' + err.message);
-  //process.exit(1);
 });
 
 // Starting socket.io connection
