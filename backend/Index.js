@@ -17,28 +17,36 @@ var sequelize = new Sequelize('reports', 'maxroach', '', {
 // Define the Issue model for the "issues" table.
 var Issue = sequelize.define('issues', {
   //id: { type: Sequelize.INTEGER, primaryKey: true },
-  name: { type: Sequelize.STRING },
-  problem: { type: Sequelize.STRING },
-  uuid: { type: Sequelize.STRING },
+  name: {
+    type: Sequelize.STRING
+  },
+  problem: {
+    type: Sequelize.STRING
+  },
+  uuid: {
+    type: Sequelize.STRING
+  },
 });
 
 // Define the "issues" table.
-Issue.sync({force: true}).then(function() {
+Issue.sync({
+  force: true
+}).then(function () {
   // Insert two rows into the "issues" table.
   /*return Issue.bulkCreate([
     {name: "name1", problem: "this is a real problem", uuid: "exampleUUID123"},
     {name: "name2", problem: "this is not a real problem", uuid: "exaaaampleUUID123"},
   ]);*/
-}).then(function() {
+}).then(function () {
   // Retrieve issues.
   return Issue.findAll();
-}).then(function(issues) {
+}).then(function (issues) {
   // Print out the names.
-  issues.forEach(function(issue) {
+  issues.forEach(function (issue) {
     console.log(issue.id + ' ' + issue.name);
   });
   //process.exit(0);
-}).catch(function(err) {
+}).catch(function (err) {
   console.error('error: ' + err.message);
   //process.exit(1);
 });
@@ -46,31 +54,39 @@ Issue.sync({force: true}).then(function() {
 // Define the Session model for the "sessions" table
 var Session = sequelize.define('sessions', {
   //id: { type: Sequelize.INTEGER, primaryKey: true },
-  isMobileConnected: { type: Sequelize.BOOLEAN },
-  isClientConnected: { type: Sequelize.BOOLEAN },
-  uuid: { type: Sequelize.STRING },
+  isMobileConnected: {
+    type: Sequelize.BOOLEAN
+  },
+  isClientConnected: {
+    type: Sequelize.BOOLEAN
+  },
+  uuid: {
+    type: Sequelize.STRING
+  },
 });
 
 // Assigning uuid value from Issue model to Session
 //Session.belongsTo(Issue, { foreignKey: "uuid", targetKey: "uuid"});
 
 // Define the "sessions" table.
-Session.sync({force: true}).then(function() {
+Session.sync({
+  force: true
+}).then(function () {
   // Insert two rows into the "issues" table.
   /*return Session.bulkCreate([
     {isMobileConnected: true, isClientConnected: false, uuid: "me stupid"},
     {isMobileConnected: false, isClientConnected: true, uuid: "me maybe not so stupid"},
   ]);*/
-}).then(function() {
+}).then(function () {
   // Retrieve issues.
   return Session.findAll();
-}).then(function(sessions) {
+}).then(function (sessions) {
   // Print out the names.
-  sessions.forEach(function(session) {
+  sessions.forEach(function (session) {
     console.log(session.id + ' ' + session.isClientConnected + ' ' + session.isMobileConnected);
   });
   //process.exit(0);
-}).catch(function(err) {
+}).catch(function (err) {
   console.error('error: ' + err.message);
   //process.exit(1);
 });
@@ -83,23 +99,31 @@ io.on('connection', (client) => {
     console.log("Fetching all...");
     client.send(Issue.findAll())
   });
-  
+
   // mobile:
   client.on("createIssue", (data) => {
     console.log("Creating issue...");
     Issue.create({
-      name: data.name, problem: data.problem, uuid: data.uuid
+      name: data.name,
+      problem: data.problem,
+      uuid: data.uuid
     });
   });
 
   // mobile
   client.on("createSession", (data) => {
     console.log("Creating session...");
-    Issue.findone({ where: { uuid: data.uuid } }).then((res) => {
+    Issue.findone({
+      where: {
+        uuid: data.uuid
+      }
+    }).then((res) => {
       if (res != null) {
         // create session entry if issue exists
         Session.create({
-          isMobileConnected: true, isClientConnected: false, uuid: data.uuid
+          isMobileConnected: true,
+          isClientConnected: false,
+          uuid: data.uuid
         });
 
         // connect mobile to p2p room
@@ -113,17 +137,24 @@ io.on('connection', (client) => {
   // client | website
   client.on("joinRoom", (data) => {
     console.log("Joining room...");
-    Session.findone({ where: { uuid: data.uuid}}).then((res) => {
+    Session.findone({
+      where: {
+        uuid: data.uuid
+      }
+    }).then((res) => {
       if (res != null && res.isMobileConnected && !res.isClientConnected) {
         // connect if issue exists, mobile connected, and no client/website is connected
         client.join(data.uuid);
         p2p(client, null, data.uuid);
         console.log("Client and mobile are now in a p2p room.");
-      }
-      else {
+      } else {
         client.send("Failed to join room. Either issue doesn't exist, mobile isn't connected, or client is already connected");
       }
     });
+    // updating isClientConnected to true
+    Session.update({
+      res.isClientConnected: true,
+    }).then(() => {})
   });
   /*client.on('reRender', (data) => {
     console.log("sending new data...");
