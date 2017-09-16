@@ -95,8 +95,7 @@ io.on('connection', (client) => {
         });
 
         // connect mobile to p2p room
-        client.join(data.room);
-        p2p(client, null, data.room);
+        client.join(data.uuid);
       } else {
         client.send("Failed to create session. UUID doesn't exist.")
       }
@@ -108,7 +107,8 @@ io.on('connection', (client) => {
     Session.findone({ where: { uuid: data.uuid}}).then((res) => {
       if (res != null && res.isMobileConnected && !res.isClientConnected) {
         // connect if issue exists, mobile connected, and no client/website is connected
-        client.join(data.room);
+        client.join(data.uuid);
+        p2p(client, null, data.uuid);
       }
       else {
         client.send("Failed to join room. Either issue doesn't exist, mobile isn't connected, or client is already connected");
@@ -117,7 +117,7 @@ io.on('connection', (client) => {
   })
   /*client.on('reRender', (data) => {
     console.log("sending new data...");
-    io.sockets.in(data.room).emit('receiveRender', data.view);
+    io.sockets.in(data.uuid).emit('receiveRender', data.view);
   });*/
   client.on('disconnect', () => {
     console.log("user disconnected");
