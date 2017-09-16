@@ -1,7 +1,7 @@
 # Android UI Data Feed
 
 Everything is in `JSON`.
-Every `JSONObject` will have a `type`, `id`, `x`, `y`, `height` and `width` key. The `id` is unique to the object and should be passed down in all UI related communication.
+Every `JSONObject` will have a `type`, `id`, `padding`, `x`, `y`, `height` and `width` key. The `id` is unique to the object and should be passed down in all UI related communication.
 
 For `type` - `group`, there will be an `children` array, which will contain the rest of the UI. 
 Example:

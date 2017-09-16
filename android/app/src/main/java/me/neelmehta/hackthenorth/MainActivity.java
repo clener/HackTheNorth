@@ -2,8 +2,10 @@ package me.neelmehta.hackthenorth;
 
 import android.app.Activity;
 import android.os.Bundle;
+import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 
@@ -20,8 +22,13 @@ public class MainActivity extends Activity {
         String values[] = {"This", "list", "took", "a", "long", "time", "to", "come", "up", "with"};
         ListView list = findViewById(R.id.listView);
         list.setAdapter(new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, android.R.id.text1, values));
+    }
 
-        Pluggable.plug(findViewById(R.id.root_view));
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        Pluggable.plug(this, findViewById(R.id.root_view));
     }
 
     @Override
@@ -31,10 +38,20 @@ public class MainActivity extends Activity {
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        if (Pluggable.menuItemSelected(this, item)) {
-            return true;
-        }
+        return Pluggable.menuItemSelected(this, item) || super.onOptionsItemSelected(item);
+    }
 
-        return super.onOptionsItemSelected(item);
+    @Override
+    public boolean dispatchTouchEvent(MotionEvent ev) {
+        boolean val = super.dispatchTouchEvent(ev);
+        Pluggable.reRender(findViewById(R.id.root_view));
+        return val;
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+
+        Pluggable.unplug(this);
     }
 }

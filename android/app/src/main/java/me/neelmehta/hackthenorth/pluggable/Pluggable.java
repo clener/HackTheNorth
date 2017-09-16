@@ -5,6 +5,8 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -43,6 +45,8 @@ public class Pluggable {
     private static SharedPreferences preferences = null;
     private static String mUUID = null;
     private static boolean connected = false;
+    private static boolean loaded = false;
+    private static View mRootView = null;
 
     private static Socket mSocket;
 
@@ -63,10 +67,22 @@ public class Pluggable {
                 "," + Color.alpha(color) + ")";
     }
 
+    private static JSONObject getPadding(View view) throws JSONException {
+        JSONObject padding = new JSONObject();
+
+        padding.put("left", view.getPaddingLeft());
+        padding.put("top", view.getPaddingTop());
+        padding.put("right", view.getPaddingRight());
+        padding.put("bottom", view.getPaddingBottom());
+
+        return padding;
+    }
+
     private static void getTextViewProps(TextView view, JSONObject object) throws JSONException {
         object.put("text", view.getText());
         object.put("textSize", view.getTextSize());
         object.put("textColor", getCSSColor(view.getCurrentTextColor()));
+        object.put("padding", getPadding(view));
 
         if (view.getBackground() instanceof ColorDrawable) {
             object.put("backgroundColor", getCSSColor(((ColorDrawable) view.getBackground()).getColor()));
@@ -88,7 +104,27 @@ public class Pluggable {
         }
 
         object.put("backgroundColor", getCSSColor(color));
+        object.put("padding", getPadding(viewGroup));
     }
+
+    private static TextWatcher watcher = new TextWatcher() {
+        @Override
+        public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+
+        }
+
+        @Override
+        public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+
+        }
+
+        @Override
+        public void afterTextChanged(Editable editable) {
+            if (mRootView != null) {
+                reRender(mRootView);
+            }
+        }
+    };
 
     private static JSONObject serialize(View view) throws JSONException {
         final JSONObject object = new JSONObject();
@@ -118,6 +154,9 @@ public class Pluggable {
             object.put("type", "input");
             object.put("hint", editText.getHint());
             getTextViewProps(editText, object);
+
+            editText.removeTextChangedListener(watcher);
+            editText.addTextChangedListener(watcher);
         } else if (view instanceof TextView) {
             TextView textView = (TextView) view;
 
@@ -134,25 +173,40 @@ public class Pluggable {
     public static void reRender(final View rootView) {
         IDs = new HashMap<>();
 
-        ViewTreeObserver observer = rootView.getViewTreeObserver();
-        if (observer.isAlive()) {
-            observer.addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
-                @Override
-                public void onGlobalLayout() {
-                    rootView.getViewTreeObserver().removeOnGlobalLayoutListener(this);
+        if (loaded) {
+            try {
+                JSONObject object = serialize(rootView);
+                Log.d(TAG, "plug: " + object.toString());
 
-                    try {
-                        JSONObject object = serialize(rootView);
-                        Log.d(TAG, "plug: " + object.toString());
-
-                        if (mSocket.connected()) {
-
-                        }
-                    } catch (JSONException e) {
-                        e.printStackTrace();
-                    }
+                if (mSocket != null && mSocket.connected()) {
+                    mSocket.emit("reRender", object);
                 }
-            });
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+        } else {
+            ViewTreeObserver observer = rootView.getViewTreeObserver();
+            if (observer.isAlive()) {
+                observer.addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
+                    @Override
+                    public void onGlobalLayout() {
+                        rootView.getViewTreeObserver().removeOnGlobalLayoutListener(this);
+
+                        try {
+                            JSONObject object = serialize(rootView);
+                            Log.d(TAG, "plug: " + object.toString());
+
+                            if (mSocket != null && mSocket.connected()) {
+                                mSocket.emit("reRender", object);
+                            }
+
+                            loaded = true;
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                });
+            }
         }
     }
 
@@ -162,8 +216,13 @@ public class Pluggable {
             mUUID = preferences.getString("uuid", null);
         }
 
+        mRootView = rootView;
         reRender(rootView);
-        // TODO reRender when things change. 
+    }
+
+    public static void unplug(Activity activity) {
+        loaded = false;
+        mRootView = null;
     }
 
     public static boolean initiateMenu(Activity activity, Menu menu) {
