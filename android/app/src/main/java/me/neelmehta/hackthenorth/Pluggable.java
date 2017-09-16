@@ -19,36 +19,18 @@ import org.json.JSONObject;
 public class Pluggable {
     private static final String TAG = "Pluggable";
 
-    private static void putLocationAndSize(final View view, final JSONObject object, final DimenCallbacks callbacks) throws JSONException {
+    private static void putLocationAndSize(final View view, final JSONObject object) throws JSONException {
         int[] outLocation = new int[2];
         view.getLocationOnScreen(outLocation);
 
         object.put("x", outLocation[0]);
         object.put("y", outLocation[1]);
 
-        ViewTreeObserver observer = view.getViewTreeObserver();
-        if (observer.isAlive()) {
-            observer.addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
-                @Override
-                public void onGlobalLayout() {
-                    view.getViewTreeObserver().removeOnGlobalLayoutListener(this);
-
-                    try {
-                        object.put("height", view.getHeight());
-                        object.put("width", view.getWidth());
-                        callbacks.onDimen();
-                    } catch (JSONException e) {
-                        e.printStackTrace();
-                        callbacks.onDimen();
-                    }
-                }
-            });
-        } else {
-            callbacks.onDimen();
-        }
+        object.put("height", view.getHeight());
+        object.put("width", view.getWidth());
     }
 
-    private static void serialize(View view, final SerializerCallbacks callbacks) throws JSONException {
+    private static JSONObject serialize(View view) throws JSONException {
         final JSONObject object = new JSONObject();
 
         if (view instanceof ViewGroup) {
@@ -57,12 +39,8 @@ public class Pluggable {
             ViewGroup viewGroup = (ViewGroup) view;
             final JSONArray array = new JSONArray();
             for (int i = 0; i < viewGroup.getChildCount(); i++) {
-                serialize(viewGroup.getChildAt(i), new SerializerCallbacks() {
-                    @Override
-                    public void onSerialized(JSONObject object) {
-                        array.put(object);
-                    }
-                });
+                JSONObject child = serialize(viewGroup.getChildAt(i));
+                array.put(child);
             }
 
             object.put("elements", array);
@@ -86,32 +64,26 @@ public class Pluggable {
             object.put("type", "unknown");
         }
 
-        putLocationAndSize(view, object, new DimenCallbacks() {
-            @Override
-            public void onDimen() {
-                callbacks.onSerialized(object);
-            }
-        });
+        putLocationAndSize(view, object);
+        return object;
     }
 
-    public static void plug(View rootView) {
-        try {
-            serialize(rootView, new SerializerCallbacks() {
+    public static void plug(final View rootView) {
+        ViewTreeObserver observer = rootView.getViewTreeObserver();
+        if (observer.isAlive()) {
+            observer.addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
                 @Override
-                public void onSerialized(JSONObject object) {
-                    Log.d(TAG, "plug: " + object.toString());
+                public void onGlobalLayout() {
+                    rootView.getViewTreeObserver().removeOnGlobalLayoutListener(this);
+
+                    try {
+                        JSONObject object = serialize(rootView);
+                        Log.d(TAG, "plug: " + object.toString());
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
                 }
             });
-        } catch (JSONException e) {
-            e.printStackTrace();
         }
-    }
-
-    private interface DimenCallbacks {
-        void onDimen();
-    }
-
-    private interface SerializerCallbacks {
-        void onSerialized(JSONObject object);
     }
 }
