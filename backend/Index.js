@@ -152,10 +152,17 @@ io.on('connection', (client) => {
       }
     });
 
-    // updating isClientConnected to true
-    Session.update({
-      isClientConnected: true,
-    }).then(() => {})
+    Session.findone({
+      where: {
+        uuid: data.uuid
+      }
+    }).then((res) => {
+      // updating isClientConnected to true
+      res.update({
+        isClientConnected: true,
+      }).then(() => {})
+    });
+
   });
   /*client.on('reRender', (data) => {
     console.log("sending new data...");
