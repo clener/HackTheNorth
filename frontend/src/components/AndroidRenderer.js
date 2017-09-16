@@ -7,6 +7,19 @@ import ListItem from "material-ui/List"
 import Divider from 'material-ui/Divider';
 import '../App.css';
 
+var p2p = require('socket.io-p2p');
+var io = require('socket.io-client');
+
+var socket = io();
+var opts = { numClients: 2 };
+var p2p = new p2p(socket, opts, () => {
+    p2p.emit('p2pEstablished', "p2p socket ID: " + p2psocket.peerId)
+})
+
+p2p.on('reRender', (data) => {
+    console.log("JSON object of Android %s", JSON.stringify(data));
+});
+
 class AndroidRenderer extends Component{
 
     renderElement(element, offset){
