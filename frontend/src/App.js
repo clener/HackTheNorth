@@ -13,4 +13,4 @@ class App extends Component {
   }
 }
 
-export default IssueList;
+export default App;
