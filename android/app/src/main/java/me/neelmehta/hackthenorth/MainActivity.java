@@ -2,14 +2,8 @@ package me.neelmehta.hackthenorth;
 
 import android.app.Activity;
 import android.os.Bundle;
-import android.util.Log;
-import android.view.View;
-import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
 import android.widget.ListView;
-
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.util.Scanner;
 
 public class MainActivity extends Activity {
     private static final String TAG = "MainActivity";
@@ -18,6 +12,10 @@ public class MainActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        String values[] = {"This", "list", "took", "a", "long", "time", "to", "come", "up", "with"};
+        ListView list = findViewById(R.id.listView);
+        list.setAdapter(new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, android.R.id.text1, values));
 
         Pluggable.plug(findViewById(R.id.root_view));
     }
