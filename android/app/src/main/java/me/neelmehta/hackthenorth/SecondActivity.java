@@ -10,7 +10,7 @@ import android.view.View;
 
 import me.neelmehta.hackthenorth.pluggable.Pluggable;
 
-public class SecondActivity extends Activity {
+public class SecondActivity extends Activity implements Pluggable.PluggableCallbacks {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -36,13 +36,13 @@ public class SecondActivity extends Activity {
     @Override
     protected void onResume() {
         super.onResume();
-        Pluggable.plug(this, findViewById(R.id.secondRoot));
+        Pluggable.plug(this);
     }
 
     @Override
     public boolean dispatchTouchEvent(MotionEvent ev) {
         boolean val = super.dispatchTouchEvent(ev);
-        Pluggable.reRender(findViewById(R.id.secondRoot));
+        Pluggable.reRender();
         return val;
     }
 
@@ -50,6 +50,16 @@ public class SecondActivity extends Activity {
     protected void onPause() {
         super.onPause();
 
-        Pluggable.unplug(this);
+        Pluggable.unplug();
+    }
+
+    @Override
+    public Activity getActivity() {
+        return this;
+    }
+
+    @Override
+    public View getRootView() {
+        return findViewById(R.id.secondRoot);
     }
 }
