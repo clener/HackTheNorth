@@ -13,43 +13,34 @@
         android:orientation="horizontal">
 
         <EditText
+            android:id="@+id/mainEditText"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:hint="@string/edittext_hint" />
 
         <Button
+            android:id="@+id/mainButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:background="@android:color/holo_orange_dark"
             android:text="@string/button" />
     </LinearLayout>
 
     <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Hello World!" />
-
-    <Button
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:background="@android:color/holo_blue_bright"
-        android:text="@string/button"
-        android:textColor="@android:color/holo_orange_dark" />
-
-    <EditText
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="@android:color/holo_orange_dark"
-        android:text="@string/edittext_hint"
-        android:textColor="@android:color/white" />
-
-    <TextView
+        android:id="@+id/mainText"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:background="@color/colorPrimary"
-        android:text="@string/app_name"
+        android:text="Hello World!"
         android:textColor="@color/colorAccent"
         android:textSize="33sp" />
+
+    <Button
+        android:id="@+id/secondaryButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/secondary_button" />
 
     <ListView
         android:id="@+id/listView"

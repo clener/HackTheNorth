@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/secondRoot"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="me.neelmehta.hackthenorth.SecondActivity">
+
+    <Button
+        android:id="@+id/takeBack"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/i_will_take_you_back" />
+
+    <Button
+        android:id="@+id/makeRed"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/takeBack"
+        android:layout_centerHorizontal="true"
+        android:text="@string/i_will_turn_the_other_button_red" />
+
+</RelativeLayout>
