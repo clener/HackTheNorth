@@ -12,61 +12,65 @@ import {
 } from 'material-ui/Table';
 
 // Setting up socket
-var io = require('socket.io-client');
-var socket = io.connect('http://34.229.167.116:3000');
+//var io = require('socket.io-client');
+//var socket = io();
 
 //socket.connect('http://34.229.167.116/:3000');
 
 class IssueList extends Component {
-  constructor(props) {
-    super(props);
-
-    this.state = {
-      issues: []
-    };
-  }
   
-  componentDidMount() {
-    socket.on('fetchAllRes', (data) => {
-      console.log("JSON data of DB %s", JSON.stringify(data));
-      this.setState({
-        issues: data,
-      });
-    });
+  constructor(props){
+    super();
+    this.state = {};
 
-    socket.emit('fetchAllReq');
+    props.socket.on('connectToSessionRes', (res) => {
+      if (res) {
+        console.log('can connect to session')
+      }
+    })
+  }
+  componentWillReceiveProps(nextProps) {
+    this.setState({issues: nextProps.issues});
+  }
 
-    socket.on('updatedIssues', () => {
-      socket.emit('fetchAllReq');
-    })    
-  };
+  cellClicked(row, column){
+    var issue = this.state.issues[row];
+    this.connectToSession(issue.uuid)
+  }
+
+  connectToSession(uuid) {
+    this.props.socket.emit('connectToSessionReq', uuid)
+    console.log("SDfsadf")
+    
+  }
 
   render() {
-    const {
-      issues,
-    } = this.state;
-    console.log("111111")
-    console.log(issues)
-    
+    var issues = []
+
+    if (this.state.issues) {
+      issues = this.state.issues
+    }
+
     return (
-      <MuiThemeProvider>
-        <Table>
+      <Table onCellClick={(row, column) => this.cellClicked(row, column)}>
           <TableHeader displaySelectAll={false} adjustForCheckbox={false}>
-            <TableRow>
+          <TableRow> 
               <TableHeaderColumn>Name</TableHeaderColumn>
               <TableHeaderColumn>Issue</TableHeaderColumn>
             </TableRow>
           </TableHeader>
           <TableBody displayRowCheckbox={false}>
-            {issues.map((issue, i) => {
+        {
+          issues.map((issue) => {
               return (
                 <TableRow>
                   <Link to="/android">
-                    <TableRowColumn>{issue.name}</TableRowColumn>
-                    <TableRowColumn>{issue.problem}</TableRowColumn>
-                  </Link>
-                </TableRow>)
-            })}
+                  <TableRowColumn>{issue.name}</TableRowColumn>
+                  <TableRowColumn>{issue.problem}</TableRowColumn>
+                </TableRow>
+                )
+            }) 
+        }
           </TableBody>
         </Table>
       </MuiThemeProvider>

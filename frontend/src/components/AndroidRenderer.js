@@ -10,12 +10,15 @@ import '../App.css';
 var p2p = require('socket.io-p2p');
 var io = require('socket.io-client');
 
-var socket = io.connect('http://34.229.167.116:3000');
-//socket.connect();
+/*var p2p = require('socket.io-p2p');
+var io = require('socket.io-client');
+io.connect("34.229.167.116:3000")*/
+
+/*var socket = io();
 var opts = { numClients: 2 };
-var p2p = new p2p(socket, opts, () => {
-    p2p.emit('p2pEstablished', "p2p socket ID: " + p2p.peerId)
-})
+var p2pConnection = new p2p(socket, opts, function() {
+    //p2pConnection.emit('p2pEstablished', "p2p socket ID: " + p2psocket.peerId)
+})*/
 
 // function to emit rendering to android
 // function sendRenderToAndroid(data) {
@@ -24,6 +27,11 @@ var p2p = new p2p(socket, opts, () => {
 // }
 
 class AndroidRenderer extends Component {
+
+    constructor(props){
+        super(props);
+        this.state = {}
+    }
 
     renderElement(element, offset){
         if(element == null)
@@ -37,66 +45,67 @@ class AndroidRenderer extends Component {
             position: "absolute",
             top: (element.y - offset)/4 + "px",
             left: element.x/4 + "px",
-        }
-
+            //padding: element.padding.top/4 + "px " + element.padding.right/4 + "px " + element.padding.bottom/4 + "px " + element.padding.left/4 + "px"
+        }   
         switch(element.type){
             case "group":
                 if(element.children != null && element.children.length > 0){
                     element.children.forEach((child) => {
                         children.push(this.renderElement(child, offset));
-                        console.log(child);
                     });
                 }
 
-                return (<div style={placementStyle}>{children.map((child, index) => { return (<div id={index}>{child}</div>);})}</div>)
+                return (<div id={element.id} style={placementStyle}>{children.map((child, index) => { return (<div id={index}>{child}</div>);})}</div>)
             case "list":
                 if(element.children != null && element.children.length > 0){
                     element.children.forEach((child) => {
                         children.push(this.renderListItem(child, offset));
-                        console.log(child);
                     });
                 }
 
-                return (<MouseTracker style={placementStyle}><List>{children.map((child, index) => { return (<div id={index}>{child}</div>);})}</List></MouseTracker>)
+                return (<MouseTracker style={placementStyle}><List id={element.id}>{children.map((child, index) => { return (<div id={index}>{child}</div>);})}</List></MouseTracker>)
             case "button":
-                var placementStyle = {
-                    position: "absolute",
-                    top: (element.y - offset)/4 + "px",
-                    left: element.x/4 + "px",
-                    //fontSize: element.textSize/4,
+
+                placementStyle.height = Math.ceil(element.height/4 - element.padding.top/4 - element.padding.bottom/4) + "px";
+                //placementStyle.padding = null;
+
+                var buttonStyle = {
+                    lineHeight: Math.ceil(element.height/4 - element.padding.top/4 - element.padding.bottom/4) + "px",
                 }
 
-                return <RaisedButton labelColor={element.textColor} backgroundColor={element.backgroundColor} style={placementStyle}>{element.text}</RaisedButton>
+                if(element.textColor)
+                    buttonStyle.color = element.textColor;
+
+                return <RaisedButton labelColor={element.textColor} backgroundColor={element.backgroundColor} style={placementStyle} buttonStyle={buttonStyle}>{element.text}</RaisedButton>
             case "input":
                 var inputStyle = {}
+                
+                var textToShow = element.text;
+                if (this.state[element.id]) {
+                    textToShow = this.state[element.id];
+                }
 
                 if(element.backgroundColor)
                     inputStyle.background = element.backgroundColor;
                 if(element.textColor)
                     inputStyle.color = element.textColor;
 
-                return <TextField id={element.id} value={element.text} placeholder={element.hint} style={placementStyle} inputStyle={inputStyle}></TextField>
+                return <TextField id={element.id} onChange={(e, t) => this.inputChange(e, t, element.id)} value={textToShow} placeholder={element.hint} style={placementStyle} inputStyle={inputStyle}></TextField>
             case "text":
-                var placementStyle = {
-                    height: Math.ceil(element.height/4) + "px",
-                    width: Math.ceil(element.width/4) + "px",
-                    position: "absolute",
-                    top: (element.y - offset)/4 + "px",
-                    left: element.x/4 + "px",
-                }
+                var formatStyle = {};
 
                 if(element.backgroundColor)
-                    placementStyle.background = element.backgroundColor;
+                    formatStyle.background = element.backgroundColor;
                 if(element.textColor)
-                    placementStyle.color = element.textColor;
+                    formatStyle.color = element.textColor;
                 if(element.textSize)
-                    placementStyle.fontSize = element.textSize/4;
+                    formatStyle.fontSize = element.textSize/4;
 
-                return <text style={placementStyle}>{element.text}</text>
+                var textStyle = Object.assign(placementStyle, formatStyle);
+
+                return <text id={element.id} style={textStyle}>{element.text}</text>
             default:
-                
-
-                return <div style={placementStyle}>???</div>
+                return null;
         }       
     }
 
@@ -114,15 +123,15 @@ class AndroidRenderer extends Component {
             style.fontSize = element.textSize/4;
         }
 
-        return (<div style={style}><ListItem>{element.text}</ListItem><Divider/></div>)
+        return (<div style={style}><ListItem id={element.id}>{element.text}</ListItem><Divider/></div>)
     }
 
     
 
 componentDidMount() {
-  p2p.on('reRenderReq', (data) => {
+  /*p2p.on('reRenderReq', (data) => {
       console.log("JSON object of Android %s", JSON.stringify(data));
-  });
+  });*/
 };
 
     render(){
@@ -132,7 +141,13 @@ componentDidMount() {
             return null;
 
         return (<div id="rendererCanvas" style={{position: "static"}}>{this.renderElement(data, data.y)}</div>);
+    }
 
+    inputChange(event, value, id){
+        //TODO SEND CHANGE OVER SOCKET
+        var toUpdate = {}
+        toUpdate[id] = value;
+        this.setState(toUpdate);
     }
 }
 
