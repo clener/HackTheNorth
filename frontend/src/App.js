@@ -14,7 +14,7 @@ class App extends Component {
       <MuiThemeProvider>
         <div>
           <AndroidRenderer data={issues} />
-          <IssueList issues={issues} />
+          <IssueList/>
         </div >
       </MuiThemeProvider >
     );

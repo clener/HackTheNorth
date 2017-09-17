@@ -1,4 +1,6 @@
 import React, { Component } from 'react';
+import { Link } from 'react-router-dom';
+import MuiThemeProvider from 'material-ui/styles/MuiThemeProvider';
 import '../App.css';
 import {
   Table,
@@ -45,23 +47,27 @@ class IssueList extends Component {
     } = this.state;
     
     return (
-      <Table>
-        <TableHeader displaySelectAll={false} adjustForCheckbox={false}>
-          <TableRow>
-            <TableHeaderColumn>Name</TableHeaderColumn>
-            <TableHeaderColumn>Issue</TableHeaderColumn>
-          </TableRow>
-        </TableHeader>
-        <TableBody displayRowCheckbox={false}>
-          {issues.map((issue, i) => {
-            return (
-              <TableRow>
-                <TableRowColumn>{issue.name}</TableRowColumn>
-                <TableRowColumn>{issue.problem}</TableRowColumn>
-              </TableRow>)
-          })}
-        </TableBody>
-      </Table>
+      <MuiThemeProvider>
+        <Table>
+          <TableHeader displaySelectAll={false} adjustForCheckbox={false}>
+            <TableRow>
+              <TableHeaderColumn>Name</TableHeaderColumn>
+              <TableHeaderColumn>Issue</TableHeaderColumn>
+            </TableRow>
+          </TableHeader>
+          <TableBody displayRowCheckbox={false}>
+            {issues.map((issue, i) => {
+              return (
+                <TableRow>
+                  <Link to="/android">
+                    <TableRowColumn>{issue.name}</TableRowColumn>
+                    <TableRowColumn>{issue.problem}</TableRowColumn>
+                  </Link>
+                </TableRow>)
+            })}
+          </TableBody>
+        </Table>
+      </MuiThemeProvider>
     );
   }
 }
