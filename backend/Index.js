@@ -15,7 +15,11 @@ var sequelize = new Sequelize('reports', 'maxroach', '', {
 
 // Define the Issue model for the "issues" table.
 var Issue = sequelize.define('issues', {
-  //id: { type: Sequelize.INTEGER, primaryKey: true },
+  id: {
+    type: Sequelize.INTEGER,
+    primaryKey: true,
+    autoIncrement: true,    
+  },
   name: {
     type: Sequelize.STRING
   },
@@ -44,6 +48,11 @@ Issue.sync({
 
 // Define the Session model for the "sessions" table
 var Session = sequelize.define('sessions', {
+  id: {
+    type: Sequelize.INTEGER,
+    primaryKey: true,
+    autoIncrement: true,    
+  },
   isMobileConnected: {
     type: Sequelize.BOOLEAN
   },
@@ -154,12 +163,7 @@ io.on('connection', (client) => {
         isClientConnected: true,
       }).then(() => {})
     });
-
   });
-  /*client.on('reRender', (data) => {
-    console.log("sending new data...");
-    io.sockets.in(data.uuid).emit('receiveRender', data.view);
-  });*/
   client.on('endSession', (data) => {
     console.log("Ending session...");
     Session.findone({
@@ -172,7 +176,6 @@ io.on('connection', (client) => {
       res.isMobileConnected = false;
     });
   });
-
 
   client.on('disconnect', () => {
     console.log("User disconnected");
