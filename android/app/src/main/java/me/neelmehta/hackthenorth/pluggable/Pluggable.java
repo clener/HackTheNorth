@@ -40,7 +40,7 @@ import me.neelmehta.hackthenorth.R;
 public class Pluggable {
     private static final String URL = "http://34.229.167.116:3000/";
     private static final String TAG = "Pluggable";
-    private static Map<UUID, Integer> IDs = null;
+    private static Map<String, Integer> IDs = null;
     private static Menu mMenu = null;
     private static SharedPreferences preferences = null;
     private static String mUUID = null;
@@ -130,7 +130,7 @@ public class Pluggable {
         final JSONObject object = new JSONObject();
 
         UUID uuid = UUID.randomUUID();
-        IDs.put(uuid, view.getId());
+        IDs.put(uuid.toString(), view.getId());
         object.put("id", uuid.toString());
 
         if (view instanceof ListView) {
@@ -179,7 +179,7 @@ public class Pluggable {
                 Log.d(TAG, "plug: " + object.toString());
 
                 if (mSocket != null && mSocket.connected()) {
-                    mSocket.emit("reRender", object);
+                    mSocket.emit("reRender", object, mUUID);
                 }
             } catch (JSONException e) {
                 e.printStackTrace();
@@ -197,7 +197,7 @@ public class Pluggable {
                             Log.d(TAG, "plug: " + object.toString());
 
                             if (mSocket != null && mSocket.connected()) {
-                                mSocket.emit("reRender", object);
+                                mSocket.emit("reRender", object, mUUID);
                             }
 
                             loaded = true;
@@ -208,9 +208,41 @@ public class Pluggable {
                 });
             }
         }
+
+        runSocketEvents(rootView);
     }
 
-    public static void plug(Activity activity, View rootView) {
+    private static void runSocketEvents(final View rootView) {
+        if (mSocket != null) {
+            mSocket.on("event", new Emitter.Listener() {
+                @Override
+                public void call(Object... args) {
+                    JSONObject data = (JSONObject) args[0];
+
+                    String type = data.optString("type", "click");
+                    String id = data.optString("id", null);
+
+                    if (id != null && IDs.containsKey(id)) {
+                        switch (type) {
+                            case "move":
+                                ListView listView = rootView.findViewById(IDs.get(id));
+                                //listView.
+                                break;
+                            case "text":
+                                EditText editText = rootView.findViewById(IDs.get(id));
+                                editText.setText(data.optString("text", editText.getText().toString()));
+                                break;
+                            default:
+                                View view = rootView.findViewById(IDs.get(id));
+                                view.performClick();
+                        }
+                    }
+                }
+            });
+        }
+    }
+
+    public static void plug(Activity activity, final View rootView) {
         preferences = activity.getPreferences(Context.MODE_PRIVATE);
         if (preferences.contains("uuid")) {
             mUUID = preferences.getString("uuid", null);
@@ -293,39 +325,43 @@ public class Pluggable {
                 dialog.show(activity.getFragmentManager(), "IssueDialog");
                 return true;
             case R.id.startConnection:
-                JSONObject data = new JSONObject();
+                if (mSocket == null || !mSocket.connected()) {
+                    try {
+                        mSocket = IO.socket(URL).connect();
+                        mSocket.on(Socket.EVENT_CONNECT, new Emitter.Listener() {
+                            @Override
+                            public void call(Object... args) {
+                            }
+                        });
+                        mSocket.on(Socket.EVENT_CONNECT_ERROR, new Emitter.Listener() {
+                            @Override
+                            public void call(Object... args) {
+                            }
+                        });
+                    } catch (URISyntaxException e) {
+                        e.printStackTrace();
+                    }
+                }
 
-                try {
-                    data.put("uuid", mUUID);
-
-                    mSocket.emit("createSession", data);
+                if (mSocket != null && mSocket.connected()) {
+                    mSocket.emit("createSession", mUUID);
                     connected = true;
 
                     mMenu.getItem(0).setVisible(false);
                     mMenu.getItem(1).setVisible(false);
                     mMenu.getItem(2).setVisible(true);
-                } catch (JSONException e) {
-                    e.printStackTrace();
                 }
 
                 return true;
             case R.id.endConnection:
-                JSONObject endData = new JSONObject();
+                mSocket.emit("endSession", mUUID);
+                connected = false;
 
-                try {
-                    endData.put("uuid", mUUID);
+                mSocket.disconnect();
 
-                    mSocket.emit("endSession", endData);
-                    connected = false;
-
-                    mSocket.disconnect();
-
-                    mMenu.getItem(0).setVisible(true);
-                    mMenu.getItem(1).setVisible(false);
-                    mMenu.getItem(2).setVisible(false);
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
+                mMenu.getItem(0).setVisible(true);
+                mMenu.getItem(1).setVisible(false);
+                mMenu.getItem(2).setVisible(false);
 
                 return true;
             default:
