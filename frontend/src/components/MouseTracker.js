@@ -50,6 +50,7 @@ class MouseTracker extends Component{
   	};
 
   	//TODO Send to socket
+    //TODO Threshold
 
   	this.clickTime = NaN;
   }
