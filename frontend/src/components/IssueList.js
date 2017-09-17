@@ -1,5 +1,4 @@
 import React, { Component } from 'react';
-import { Link } from 'react-router-dom';
 import MuiThemeProvider from 'material-ui/styles/MuiThemeProvider';
 import '../App.css';
 import {
@@ -59,6 +58,7 @@ class IssueList extends Component {
     }
 
     return (
+      <div className="title">App Title
       <Table onCellClick={(row, column) => this.cellClicked(row, column)}>
           <TableHeader displaySelectAll={false} adjustForCheckbox={false}>
           <TableRow> 
@@ -79,6 +79,7 @@ class IssueList extends Component {
         }
           </TableBody>
         </Table>
+      </div>
     );
   }
 }

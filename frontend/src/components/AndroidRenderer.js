@@ -5,7 +5,8 @@ import MouseTracker from './MouseTracker'
 import List from "material-ui/List"
 import ListItem from "material-ui/List"
 import Divider from 'material-ui/Divider';
-import '../App.css';
+import style from '../App.css';
+import phone from '../phone.png';
 
 var p2p = require('socket.io-p2p');
 var io = require('socket.io-client');
@@ -133,18 +134,31 @@ class AndroidRenderer extends Component {
 
     componentDidMount() {
         this.props.socket.on("reRender", (data) => {
-            debugger
             this.setState({data: data});
         });
     }
 
     render(){
         var data = this.state.data;
+        if (data == null) {
+            //return null;
+            return (
+                <div>
+                    <div className="title">App Title</div>
+                    <div className="containerr">
+                        <div id="renderCanvas">Test Text{/*{this.renderElement(data, data.y)}*/}</div>
+                        <img src={phone}/>
+                    </div>
+                </div>
+            );
+        }
 
-        if(data == null)
-            return null;
-
-        return (<div id="rendererCanvas" style={{position: "static"}}>{this.renderElement(data, data.y)}</div>);
+        return (
+            <div className="containerr">
+                <div id="renderCanvas">{this.renderElement(data, data.y)}</div>
+                <img src={phone}/>
+            </div>
+        );
     }
 
     inputChange(event, value, id){
