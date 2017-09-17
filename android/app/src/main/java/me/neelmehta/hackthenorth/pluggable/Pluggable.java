@@ -47,6 +47,7 @@ public class Pluggable {
     private static boolean connected = false;
     private static boolean loaded = false;
     private static View mRootView = null;
+    private static Activity mActivity = null;
 
     private static Socket mSocket;
 
@@ -176,7 +177,6 @@ public class Pluggable {
         if (loaded) {
             try {
                 JSONObject object = serialize(rootView);
-                Log.d(TAG, "plug: " + object.toString());
 
                 if (mSocket != null && mSocket.connected()) {
                     mSocket.emit("reRender", object, mUUID);
@@ -194,7 +194,6 @@ public class Pluggable {
 
                         try {
                             JSONObject object = serialize(rootView);
-                            Log.d(TAG, "plug: " + object.toString());
 
                             if (mSocket != null && mSocket.connected()) {
                                 mSocket.emit("reRender", object, mUUID);
@@ -208,41 +207,49 @@ public class Pluggable {
                 });
             }
         }
-
-        runSocketEvents(rootView);
     }
 
     private static void runSocketEvents(final View rootView) {
         if (mSocket != null) {
             mSocket.on("event", new Emitter.Listener() {
                 @Override
-                public void call(Object... args) {
-                    JSONObject data = (JSONObject) args[0];
+                public void call(final Object... args) {
+                    mActivity.runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            Log.d(TAG, "run: I here");
+                            JSONObject data = (JSONObject) args[0];
 
-                    String type = data.optString("type", "click");
-                    String id = data.optString("id", null);
+                            String type = data.optString("type", "click");
+                            String id = data.optString("id", null);
 
-                    if (id != null && IDs.containsKey(id)) {
-                        switch (type) {
-                            case "move":
-                                ListView listView = rootView.findViewById(IDs.get(id));
-                                //listView.
-                                break;
-                            case "text":
-                                EditText editText = rootView.findViewById(IDs.get(id));
-                                editText.setText(data.optString("text", editText.getText().toString()));
-                                break;
-                            default:
-                                View view = rootView.findViewById(IDs.get(id));
-                                view.performClick();
+                            if (id != null && IDs.containsKey(id)) {
+                                switch (type) {
+                                    case "move":
+                                        ListView listView = rootView.findViewById(IDs.get(id));
+                                        //listView.
+                                        break;
+                                    case "text":
+                                        EditText editText = rootView.findViewById(IDs.get(id));
+                                        editText.removeTextChangedListener(watcher);
+                                        editText.setTextKeepState(data.optString("text", editText.getText().toString()));
+                                        editText.addTextChangedListener(watcher);
+                                        break;
+                                    default:
+                                        View view = rootView.findViewById(IDs.get(id));
+                                        view.performClick();
+                                }
+                            }
+
                         }
-                    }
+                    });
                 }
             });
         }
     }
 
     public static void plug(Activity activity, final View rootView) {
+        mActivity = activity;
         preferences = activity.getPreferences(Context.MODE_PRIVATE);
         if (preferences.contains("uuid")) {
             mUUID = preferences.getString("uuid", null);
@@ -250,11 +257,14 @@ public class Pluggable {
 
         mRootView = rootView;
         reRender(rootView);
+        runSocketEvents(rootView);
     }
 
     public static void unplug(Activity activity) {
         loaded = false;
         mRootView = null;
+
+        mActivity = null;
     }
 
     public static boolean initiateMenu(Activity activity, Menu menu) {

@@ -22,7 +22,7 @@ public class MainActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        String values[] = {"This", "list", "took", "a", "long", "time", "to", "come", "up", "with"};
+        String values[] = {"This", "list", "took", "a", "long", "time", "to", "come", "up", "with.", "Like", "it", "is", "a", "very", "long", "list.", "Very", "long."};
         ListView list = findViewById(R.id.listView);
         list.setAdapter(new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, android.R.id.text1, values));
 
