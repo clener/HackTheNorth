@@ -83,25 +83,26 @@ Session.sync({
 io.on('connection', (client) => {
 
   // get all issues
-  client.on("fetchAll", (data) => {
+  client.on("fetchAllReq", (data) => {
     console.log("Fetching all...");
     console.log("Data object:")
     console.log(JSON.stringify(data));
     
-    client.send(Issue.findAll())
+    client.emit('fetchAllRes', Issue.findAll());
   });
 
   // mobile:
-  client.on("createIssue", (data) => {
+  client.on('createIssue', (data) => {
     console.log("Creating issue...");
     console.log("Data object:")
     console.log(JSON.stringify(data));
-    
     Issue.create({
       name: data.name,
       problem: data.problem,
       uuid: data.uuid
     });
+    client.emit('updatedIssues');
+
   });
 
   // mobile
@@ -148,6 +149,16 @@ io.on('connection', (client) => {
         p2p(client, null, data.uuid);
         console.log("Client and mobile are now in a p2p room.");
         client.emit("You are both in a room now!");
+        Session.findone({
+          where: {
+            uuid: data.uuid
+          }
+        }).then((res) => {
+          // updating isClientConnected to true
+          res.update({
+            isClientConnected: true,
+          });
+        });
       } else {
         client.emit("Failed to join room. Either issue doesn't exist, mobile isn't connected, or client is already connected");
       }
