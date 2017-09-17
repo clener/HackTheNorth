@@ -3,8 +3,8 @@ var server = require('http').createServer();
 var p2p = require('socket.io-p2p-server').Server;
 var io = require('socket.io')(server);
 
-server.listen(3000);
-console.log("Now listening on port 3000...");
+server.listen(5432);
+console.log("Now listening on port 5432...");
 
 // Connect to CockroachDB through Sequelize.
 var sequelize = new Sequelize('reports', 'maxroach', '', {

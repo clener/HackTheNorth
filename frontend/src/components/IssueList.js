@@ -13,6 +13,8 @@ import {
 var io = require('socket.io-client');
 var socket = io();
 
+socket.connect('http://34.229.167.116/:3000');
+
 class IssueList extends Component {
   constructor(props) {
     super(props);
