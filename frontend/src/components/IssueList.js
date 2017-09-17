@@ -13,9 +13,9 @@ import {
 
 // Setting up socket
 var io = require('socket.io-client');
-var socket = io();
+var socket = io.connect('http://34.229.167.116:3000');
 
-socket.connect('http://34.229.167.116/:3000');
+//socket.connect('http://34.229.167.116/:3000');
 
 class IssueList extends Component {
   constructor(props) {
@@ -45,6 +45,8 @@ class IssueList extends Component {
     const {
       issues,
     } = this.state;
+    console.log("111111")
+    console.log(issues)
     
     return (
       <MuiThemeProvider>

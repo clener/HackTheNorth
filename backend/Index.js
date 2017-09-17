@@ -3,8 +3,8 @@ var server = require('http').createServer();
 var p2p = require('socket.io-p2p-server').Server;
 var io = require('socket.io')(server);
 
-server.listen(5432);
-console.log("Now listening on port 5432...");
+server.listen(3000);
+console.log("Now listening on port 3000...");
 
 // Connect to CockroachDB through Sequelize.
 var sequelize = new Sequelize('reports', 'maxroach', '', {
@@ -18,7 +18,7 @@ var Issue = sequelize.define('issues', {
   id: {
     type: Sequelize.INTEGER,
     primaryKey: true,
-    autoIncrement: true,    
+    autoIncrement: true,
   },
   name: {
     type: Sequelize.STRING
@@ -50,7 +50,7 @@ var Session = sequelize.define('sessions', {
   id: {
     type: Sequelize.INTEGER,
     primaryKey: true,
-    autoIncrement: true,    
+    autoIncrement: true,
   },
   isMobileConnected: {
     type: Sequelize.BOOLEAN
@@ -65,7 +65,7 @@ var Session = sequelize.define('sessions', {
 
 // Define the "sessions" table.
 Session.sync({
-  }).then(function () {
+}).then(function () {
   // Retrieve issues.
   return Session.findAll();
 }).then(function (sessions) {
@@ -85,8 +85,10 @@ io.on('connection', (client) => {
     console.log("Fetching all...");
     console.log("Data object:")
     console.log(JSON.stringify(data));
-    
-    client.emit('fetchAllRes', Issue.findAll());
+
+    Issue.findAll().done((data) => {
+      client.emit('fetchAllRes', data);
+    });
   });
 
   // mobile:
@@ -104,14 +106,14 @@ io.on('connection', (client) => {
   });
 
   // mobile
-  client.on("createSession", (data) => {
+  client.on("createSession", (uuid) => {
     console.log("Creating session...");
     console.log("Data object:")
-    console.log(JSON.stringify(data));
-    
+    console.log(JSON.stringify(uuid));
+
     Issue.findOne({
       where: {
-        uuid: data.uuid
+        uuid: uuid
       }
     }).then((res) => {
       if (res != null) {
@@ -119,11 +121,11 @@ io.on('connection', (client) => {
         Session.create({
           isMobileConnected: true,
           isClientConnected: false,
-          uuid: data.uuid
+          uuid: uuid
         });
 
         // connect mobile to p2p room
-        client.join(data.uuid);
+        client.join(uuid);
       } else {
         client.send("Failed to create session. UUID doesn't exist.")
       }
@@ -131,58 +133,56 @@ io.on('connection', (client) => {
   });
 
   // client | website
-  client.on("joinRoom", (data) => {
+  client.on("connectToSessionReq", (uuid) => {
     console.log("Joining room...");
     console.log("Data object:")
-    console.log(JSON.stringify(data));
-    
+    console.log(JSON.stringify(uuid));
+
     Session.findOne({
       where: {
-        uuid: data.uuid
+        uuid: uuid
       }
     }).then((res) => {
       if (res != null && res.isMobileConnected && !res.isClientConnected) {
         // connect if issue exists, mobile connected, and no client/website is connected
-        client.join(data.uuid);
-        p2p(client, null, data.uuid);
+        client.join(uuid);
+        p2p(client, null, uuid);
         console.log("Client and mobile are now in a p2p room.");
-        client.emit("You are both in a room now!");
-        Session.findOne({
-          where: {
-            uuid: data.uuid
-          }
-        }).then((res) => {
-          // updating isClientConnected to true
-          res.update({
-            isClientConnected: true,
-          });
-        });
+        client.emit('connectToSessionRes', true); // "You are both in a room now!"
+        console.log("uuid:" + uuid)
+        debugger
+        res.updateAttributes(
+          {isClientConnected: true},
+          { where: {uuid: uuid}}
+        ).success(() => {});
       } else {
-        client.emit("Failed to join room. Either issue doesn't exist, mobile isn't connected, or client is already connected");
+        client.emit('connectToSessionRes', false); // "Failed to join room. Either issue doesn't exist, mobile isn't connected, or client is already connected"
       }
     });
 
-    Session.findOne({
+    /*Session.findOne({
       where: {
-        uuid: data.uuid
+        uuid: uuid
       }
     }).then((res) => {
       // updating isClientConnected to true
-      res.update({
+      res.updateAttributes({
         isClientConnected: true,
-      }).then(() => {})
-    });
+      }).then(() => { })
+    });*/
   });
-  client.on('endSession', (data) => {
+  client.on('endSession', (uuid) => {
     console.log("Ending session...");
     Session.findOne({
       where: {
-        uuid: data.uuid
+        uuid: uuid
       }
     }).then((res) => {
       // closing connections
-      res.isClientConnected = false;
-      res.isMobileConnected = false;
+      res.updateAttributes(
+        { isClientConnected: false, isMobileConnected: false},
+        { where: {uuid: uuid}}
+      );
     });
   });
 

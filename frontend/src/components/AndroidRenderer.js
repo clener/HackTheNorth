@@ -10,7 +10,8 @@ import '../App.css';
 var p2p = require('socket.io-p2p');
 var io = require('socket.io-client');
 
-var socket = io();
+var socket = io.connect('http://34.229.167.116:3000');
+//socket.connect();
 var opts = { numClients: 2 };
 var p2p = new p2p(socket, opts, () => {
     p2p.emit('p2pEstablished', "p2p socket ID: " + p2p.peerId)
