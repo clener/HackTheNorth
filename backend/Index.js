@@ -33,7 +33,6 @@ var Issue = sequelize.define('issues', {
 
 // Define the "issues" table.
 Issue.sync({
-  force: true
 }).then(function () {
   // Retrieve issues.
   return Issue.findAll();
@@ -66,8 +65,7 @@ var Session = sequelize.define('sessions', {
 
 // Define the "sessions" table.
 Session.sync({
-  force: true
-}).then(function () {
+  }).then(function () {
   // Retrieve issues.
   return Session.findAll();
 }).then(function (sessions) {
@@ -111,7 +109,7 @@ io.on('connection', (client) => {
     console.log("Data object:")
     console.log(JSON.stringify(data));
     
-    Issue.findone({
+    Issue.findOne({
       where: {
         uuid: data.uuid
       }
@@ -138,7 +136,7 @@ io.on('connection', (client) => {
     console.log("Data object:")
     console.log(JSON.stringify(data));
     
-    Session.findone({
+    Session.findOne({
       where: {
         uuid: data.uuid
       }
@@ -149,7 +147,7 @@ io.on('connection', (client) => {
         p2p(client, null, data.uuid);
         console.log("Client and mobile are now in a p2p room.");
         client.emit("You are both in a room now!");
-        Session.findone({
+        Session.findOne({
           where: {
             uuid: data.uuid
           }
@@ -164,7 +162,7 @@ io.on('connection', (client) => {
       }
     });
 
-    Session.findone({
+    Session.findOne({
       where: {
         uuid: data.uuid
       }
@@ -177,7 +175,7 @@ io.on('connection', (client) => {
   });
   client.on('endSession', (data) => {
     console.log("Ending session...");
-    Session.findone({
+    Session.findOne({
       where: {
         uuid: data.uuid
       }

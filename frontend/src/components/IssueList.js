@@ -20,8 +20,6 @@ class IssueList extends Component {
     this.state = {
       issues: []
     };
-
-    this.getState = this.getState.bind(this);
   }
   
   componentDidMount() {

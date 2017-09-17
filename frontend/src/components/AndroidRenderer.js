@@ -13,7 +13,7 @@ var io = require('socket.io-client');
 var socket = io();
 var opts = { numClients: 2 };
 var p2p = new p2p(socket, opts, () => {
-    p2p.emit('p2pEstablished', "p2p socket ID: " + p2psocket.peerId)
+    p2p.emit('p2pEstablished', "p2p socket ID: " + p2p.peerId)
 })
 
 // function to emit rendering to android
