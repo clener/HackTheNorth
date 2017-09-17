@@ -31,7 +31,10 @@ class AndroidRenderer extends Component {
     constructor(props){
         super(props);
         this.state = {}
+
     }
+
+
 
     renderElement(element, offset){
         if(element == null)
@@ -128,14 +131,15 @@ class AndroidRenderer extends Component {
 
     
 
-componentDidMount() {
-  /*p2p.on('reRenderReq', (data) => {
-      console.log("JSON object of Android %s", JSON.stringify(data));
-  });*/
-};
+    componentDidMount() {
+        this.props.socket.on("reRender", (data) => {
+            debugger
+            this.setState({data: data});
+        });
+    }
 
     render(){
-        var data = this.props.data;
+        var data = this.state.data;
 
         if(data == null)
             return null;

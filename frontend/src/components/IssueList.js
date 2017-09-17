@@ -11,26 +11,33 @@ import {
   TableRowColumn,
 } from 'material-ui/Table';
 
-// Setting up socket
-//var io = require('socket.io-client');
-//var socket = io();
-
-//socket.connect('http://34.229.167.116/:3000');
-
 class IssueList extends Component {
   
   constructor(props){
-    super();
+    super(props);
     this.state = {};
+    this.socket = props.socket;
 
-    props.socket.on('connectToSessionRes', (res) => {
+    this.socket.on('connectToSessionRes', (res) => {
       if (res) {
         console.log('can connect to session')
+        props.showAndroidRender();
+      }else{
+        console.log("Can't connect to session as requested by server");
       }
     })
   }
+
   componentWillReceiveProps(nextProps) {
     this.setState({issues: nextProps.issues});
+  }
+
+  componentDidMount(){
+    this.socket.emit("fetchAllReq", {});
+    this.socket.on("fetchAllRes", (data) => {
+       console.log(data);
+       this.setState({issues: data});
+    });
   }
 
   cellClicked(row, column){
@@ -39,7 +46,7 @@ class IssueList extends Component {
   }
 
   connectToSession(uuid) {
-    this.props.socket.emit('connectToSessionReq', uuid)
+    this.socket.emit('connectToSessionReq', uuid)
     console.log("SDfsadf")
     
   }
@@ -64,7 +71,6 @@ class IssueList extends Component {
           issues.map((issue) => {
               return (
                 <TableRow>
-                  <Link to="/android">
                   <TableRowColumn>{issue.name}</TableRowColumn>
                   <TableRowColumn>{issue.problem}</TableRowColumn>
                 </TableRow>
@@ -73,7 +79,6 @@ class IssueList extends Component {
         }
           </TableBody>
         </Table>
-      </MuiThemeProvider>
     );
   }
 }
