@@ -20,6 +20,11 @@ p2p.on('reRender', (data) => {
     console.log("JSON object of Android %s", JSON.stringify(data));
 });
 
+function sendRenderToAndroid(data) {
+    console.log("Sending new updated Android view to phone.");
+    p2p.emit('reRender', data);
+}
+
 class AndroidRenderer extends Component{
 
     renderElement(element, offset){
