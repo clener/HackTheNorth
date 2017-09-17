@@ -16,16 +16,13 @@ var p2p = new p2p(socket, opts, () => {
     p2p.emit('p2pEstablished', "p2p socket ID: " + p2psocket.peerId)
 })
 
-p2p.on('reRender', (data) => {
-    console.log("JSON object of Android %s", JSON.stringify(data));
-});
+// function to emit rendering to android
+// function sendRenderToAndroid(data) {
+//     console.log("Sending new updated Android view to phone.");
+//     p2p.emit('reRenderRes', data);
+// }
 
-function sendRenderToAndroid(data) {
-    console.log("Sending new updated Android view to phone.");
-    p2p.emit('reRender', data);
-}
-
-class AndroidRenderer extends Component{
+class AndroidRenderer extends Component {
 
     renderElement(element, offset){
         if(element == null)
@@ -119,6 +116,14 @@ class AndroidRenderer extends Component{
         return (<div style={style}><ListItem>{element.text}</ListItem><Divider/></div>)
     }
 
+    
+
+componentDidMount() {
+  p2p.on('reRenderReq', (data) => {
+      console.log("JSON object of Android %s", JSON.stringify(data));
+  });
+};
+
     render(){
         var data = this.props.data;
 
@@ -129,4 +134,5 @@ class AndroidRenderer extends Component{
 
     }
 }
+
 export default AndroidRenderer; 
