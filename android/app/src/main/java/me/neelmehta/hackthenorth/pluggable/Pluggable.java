@@ -26,6 +26,7 @@ import org.json.JSONObject;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 import io.socket.emitter.Emitter;
 import me.neelmehta.hackthenorth.R;
@@ -115,7 +116,13 @@ public class Pluggable {
 
         @Override
         public void afterTextChanged(Editable editable) {
-            reRender();
+            try {
+                TimeUnit.MILLISECONDS.sleep(500);
+                reRender();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+                reRender();
+            }
         }
     };
 
@@ -225,7 +232,7 @@ public class Pluggable {
                                     case "text":
                                         EditText editText = mCallbacks.getRootView().findViewById(IDs.get(id));
                                         editText.removeTextChangedListener(watcher);
-                                        editText.setTextKeepState(data.optString("text", editText.getText().toString()));
+                                        editText.setText(data.optString("text", editText.getText().toString()));
                                         editText.addTextChangedListener(watcher);
                                         break;
                                     default:
