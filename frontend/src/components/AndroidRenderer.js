@@ -143,24 +143,18 @@ class AndroidRenderer extends Component {
 
     render(){
         var data = this.state.data;
-        if (data == null) {
-            //return null;
-            return (
-                <div>
-                    <div className="title">App Title</div>
-                    <div className="containerr">
-                        <div id="renderCanvas">Test Text{/*{this.renderElement(data, data.y)}*/}</div>
-                        <img src={phone}/>
-                    </div>
-                </div>
-            );
-        }
-        console.log("UUID: " + this.props.uuid)
+        if (data == null) return null;
+            
+        console.log("UUID: " + this.props.uuid);
+
         return (
+        <div>
+            <div className="title">App Title</div>
             <div className="containerr">
                 <div id="renderCanvas">{this.renderElement(data, data.y)}</div>
                 <img src={phone}/>
             </div>
+        </div>
         );
     }
 

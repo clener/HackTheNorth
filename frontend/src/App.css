@@ -1,5 +1,10 @@
-body {
-  background-color: #6969D6;
+html {
+  height: 100%;
+  background: #3BBADA;
+  background: -webkit-linear-gradient(#3BBADA, #5A6AB1); /* For Safari 5.1 to 6.0 */
+  background: -o-linear-gradient(#3BBADA, #5A6AB1); /* For Opera 11.1 to 12.0 */
+  background: -moz-linear-gradient(#3BBADA, #5A6AB1); /* For Firefox 3.6 to 15 */
+  background: linear-gradient(#3BBADA, #5A6AB1); /* Standard syntax */
 }
 
 .containerr {
@@ -10,23 +15,23 @@ body {
 }
 
 img {
-  width: 50%;
-  height: 45%;
-  margin-top: 20px;
+  width: 68%;
 }
 
 #renderCanvas {
   position: absolute;
-  top: 30%;
-  left: 50%; 
-   
-  padding: 5px;
+  top: 11.74%;
+  left: 37.1%;
   background-color: white;
-  border: 2px solid red;
+  width: 30.4%;
+  height: 76%;
 }
 
 .title {
   font-size: 4em;
   text-align: center;
   font-weight: bold;
+  font-family: 'Roboto', sans-serif;
+  margin: 20px;
+  color: white;
 }

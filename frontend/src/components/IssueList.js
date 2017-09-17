@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import MuiThemeProvider from 'material-ui/styles/MuiThemeProvider';
-import '../App.css';
+import style from '../App.css';
 import {
   Table,
   TableBody,
@@ -59,28 +59,29 @@ class IssueList extends Component {
     }
 
     return (
-      <div className="title">App Title
-      <Table onCellClick={(row, column) => this.cellClicked(row, column)}>
+      <div>
+        <div className="title">App Title</div>
+        <Table onCellClick={(row, column) => this.cellClicked(row, column)}>
           <TableHeader displaySelectAll={false} adjustForCheckbox={false}>
-          <TableRow> 
-              <TableHeaderColumn>Name</TableHeaderColumn>
-              <TableHeaderColumn>Issue</TableHeaderColumn>
-            </TableRow>
+            <TableRow> 
+                <TableHeaderColumn>Name</TableHeaderColumn>
+                <TableHeaderColumn>Issue</TableHeaderColumn>
+              </TableRow>
           </TableHeader>
           <TableBody displayRowCheckbox={false}>
-        {
-          issues.map((issue) => {
-              return (
-                <TableRow>
-                  <TableRowColumn>{issue.name}</TableRowColumn>
-                  <TableRowColumn>{issue.problem}</TableRowColumn>
-                </TableRow>
-                )
-            }) 
-        }
+          {
+            issues.map((issue) => {
+                return (
+                  <TableRow>
+                    <TableRowColumn>{issue.name}</TableRowColumn>
+                    <TableRowColumn>{issue.problem}</TableRowColumn>
+                  </TableRow>
+                  )
+              }) 
+          }
           </TableBody>
         </Table>
-      </div>
+        </div>
     );
   }
 }
