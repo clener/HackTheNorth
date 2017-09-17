@@ -101,7 +101,9 @@ io.on('connection', (client) => {
       problem: data.problem,
       uuid: data.uuid
     });
-    client.emit('fetchAllRes', data);
+    Issue.findAll().done((data) => {
+      client.emit('fetchAllRes', data);
+    });
 
   });
 
