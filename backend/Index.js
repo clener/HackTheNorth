@@ -128,7 +128,7 @@ io.on('connection', (client) => {
   });
 
   client.on('event', (data, uuid) => {
-    client.broadcast.to(uuid).emit(data)
+    client.broadcast.to(uuid).emit('event', data)
   });
 
   client.on('reRender', (data, uuid) => {
