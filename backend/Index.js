@@ -101,7 +101,7 @@ io.on('connection', (client) => {
       problem: data.problem,
       uuid: data.uuid
     });
-    client.emit('updatedIssues');
+    client.emit('fetchAllRes', data);
 
   });
 
