@@ -80,7 +80,7 @@ class AndroidRenderer extends Component {
                 if(element.textColor)
                     buttonStyle.color = element.textColor;
 
-                return <RaisedButton labelColor={element.textColor} backgroundColor={element.backgroundColor} style={placementStyle} buttonStyle={buttonStyle}>{element.text}</RaisedButton>
+                return <RaisedButton onClick={(event) => this.buttonClick(event, element.id)} labelColor={element.textColor} backgroundColor={element.backgroundColor} style={placementStyle} buttonStyle={buttonStyle}>{element.text}</RaisedButton>
             case "input":
                 var inputStyle = {}
                 
@@ -136,6 +136,9 @@ class AndroidRenderer extends Component {
         this.props.socket.on("reRender", (data) => {
             this.setState({data: data});
         });
+        this.props.socket.on("endConnection", () => {
+
+        });
     }
 
     render(){
@@ -152,7 +155,7 @@ class AndroidRenderer extends Component {
                 </div>
             );
         }
-
+        console.log("UUID: " + this.props.uuid)
         return (
             <div className="containerr">
                 <div id="renderCanvas">{this.renderElement(data, data.y)}</div>
@@ -161,11 +164,25 @@ class AndroidRenderer extends Component {
         );
     }
 
+    buttonClick(event, id){
+        console.log(event);
+
+        this.props.socket.emit("myEvent", {
+            id: id,
+            type: "click"
+        }, this.props.uuid);
+    }
+
     inputChange(event, value, id){
-        //TODO SEND CHANGE OVER SOCKET
         var toUpdate = {}
         toUpdate[id] = value;
         this.setState(toUpdate);
+
+        this.props.socket.emit("myEvent", {
+            id: id,
+            type: "text",
+            text: value
+        }, this.props.uuid)
     }
 }
 

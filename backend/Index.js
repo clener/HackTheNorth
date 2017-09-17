@@ -1,6 +1,5 @@
 var Sequelize = require('sequelize-cockroachdb');
 var server = require('http').createServer();
-var p2p = require('socket.io-p2p-server').Server;
 var io = require('socket.io')(server);
 
 server.listen(3000);
@@ -38,9 +37,9 @@ Issue.sync({
   return Issue.findAll();
 }).then(function (issues) {
   // Print out the names.
-  issues.forEach(function (issue) {
+  /*issues.forEach(function (issue) {
     console.log(issue.id + ' ' + issue.name);
-  });
+  });*/
 }).catch(function (err) {
   console.error('error: ' + err.message);
 });
@@ -68,11 +67,11 @@ Session.sync({
 }).then(function () {
   // Retrieve issues.
   return Session.findAll();
-}).then(function (sessions) {
+}).then((sessions) => {
   // Print out the names.
-  sessions.forEach(function (session) {
+  /*sessions.forEach(function (session) {
     console.log(session.id + ' ' + session.isClientConnected + ' ' + session.isMobileConnected);
-  });
+  });*/
 }).catch(function (err) {
   console.error('error: ' + err.message);
 });
@@ -82,9 +81,7 @@ io.on('connection', (client) => {
 
   // get all issues
   client.on("fetchAllReq", (data) => {
-    console.log("Fetching all...");
-    console.log("Data object:")
-    console.log(JSON.stringify(data));
+    console.log("Fetching all issues...");
 
     Issue.findAll().done((data) => {
       client.emit('fetchAllRes', data);
@@ -94,8 +91,7 @@ io.on('connection', (client) => {
   // mobile:
   client.on('createIssue', (data) => {
     console.log("Creating issue...");
-    console.log("Data object:")
-    console.log(JSON.stringify(data));
+    console.log("Issue entry: " + JSON.stringify(data))
     Issue.create({
       name: data.name,
       problem: data.problem,
@@ -110,9 +106,6 @@ io.on('connection', (client) => {
   // mobile
   client.on("createSession", (uuid) => {
     console.log("Creating session...");
-    console.log("Data object:")
-    console.log(JSON.stringify(uuid));
-
     Issue.findOne({
       where: {
         uuid: uuid
@@ -134,12 +127,18 @@ io.on('connection', (client) => {
     });
   });
 
+  client.on('event', (data, uuid) => {
+    client.broadcast.to(uuid).emit('event', data)
+  });
+
+  client.on('reRender', (data, uuid) => {
+    console.log("Re-rendering...")
+    client.broadcast.to(uuid).emit('reRender', data) 
+  });
+
   // client | website
   client.on("connectToSessionReq", (uuid) => {
-    console.log("Joining room...");
-    console.log("Data object:")
-    console.log(JSON.stringify(uuid));
-
+    console.log("Client joining room...");
     Session.findOne({
       where: {
         uuid: uuid
@@ -148,31 +147,20 @@ io.on('connection', (client) => {
       if (res != null && res.isMobileConnected && !res.isClientConnected) {
         // connect if issue exists, mobile connected, and no client/website is connected
         client.join(uuid);
-        p2p(client, null, uuid);
-        console.log("Client and mobile are now in a p2p room.");
+        console.log("Client and mobile are now connected.");
         client.emit('connectToSessionRes', true); // "You are both in a room now!"
-        console.log("uuid:" + uuid)
-        debugger
-        res.updateAttributes(
+        Session.update(
           {isClientConnected: true},
           { where: {uuid: uuid}}
-        ).success(() => {});
+        );
       } else {
         client.emit('connectToSessionRes', false); // "Failed to join room. Either issue doesn't exist, mobile isn't connected, or client is already connected"
+        console.log("Client and mobile are now connected.");
       }
     });
-
-    /*Session.findOne({
-      where: {
-        uuid: uuid
-      }
-    }).then((res) => {
-      // updating isClientConnected to true
-      res.updateAttributes({
-        isClientConnected: true,
-      }).then(() => { })
-    });*/
   });
+
+
   client.on('endSession', (uuid) => {
     console.log("Ending session...");
     Session.findOne({
@@ -181,7 +169,7 @@ io.on('connection', (client) => {
       }
     }).then((res) => {
       // closing connections
-      res.updateAttributes(
+      Session.update(
         { isClientConnected: false, isMobileConnected: false},
         { where: {uuid: uuid}}
       );

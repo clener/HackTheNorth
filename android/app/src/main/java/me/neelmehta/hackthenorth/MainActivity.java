@@ -14,7 +14,7 @@ import android.widget.TextView;
 
 import me.neelmehta.hackthenorth.pluggable.Pluggable;
 
-public class MainActivity extends Activity {
+public class MainActivity extends Activity implements Pluggable.PluggableCallbacks{
     private static final String TAG = "MainActivity";
 
     @Override
@@ -22,7 +22,7 @@ public class MainActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        String values[] = {"This", "list", "took", "a", "long", "time", "to", "come", "up", "with"};
+        String values[] = {"This", "list", "took", "a", "long", "time", "to", "come", "up", "with.", "Like", "it", "is", "a", "very", "long", "list.", "Very", "long."};
         ListView list = findViewById(R.id.listView);
         list.setAdapter(new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, android.R.id.text1, values));
 
@@ -47,7 +47,7 @@ public class MainActivity extends Activity {
     protected void onResume() {
         super.onResume();
 
-        Pluggable.plug(this, findViewById(R.id.root_view));
+        Pluggable.plug(this);
     }
 
     @Override
@@ -63,7 +63,7 @@ public class MainActivity extends Activity {
     @Override
     public boolean dispatchTouchEvent(MotionEvent ev) {
         boolean val = super.dispatchTouchEvent(ev);
-        Pluggable.reRender(findViewById(R.id.root_view));
+        Pluggable.reRender();
         return val;
     }
 
@@ -71,6 +71,16 @@ public class MainActivity extends Activity {
     protected void onPause() {
         super.onPause();
 
-        Pluggable.unplug(this);
+        Pluggable.unplug();
+    }
+
+    @Override
+    public Activity getActivity() {
+        return this;
+    }
+
+    @Override
+    public View getRootView() {
+        return findViewById(R.id.root_view);
     }
 }

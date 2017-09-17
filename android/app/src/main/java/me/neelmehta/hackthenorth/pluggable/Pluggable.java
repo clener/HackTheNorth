@@ -23,13 +23,11 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.net.URISyntaxException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
-import io.socket.client.IO;
-import io.socket.client.Socket;
 import io.socket.emitter.Emitter;
 import me.neelmehta.hackthenorth.R;
 
@@ -38,17 +36,15 @@ import me.neelmehta.hackthenorth.R;
  */
 
 public class Pluggable {
-    private static final String URL = "http://34.229.167.116:3000/";
     private static final String TAG = "Pluggable";
     private static Map<String, Integer> IDs = null;
     private static Menu mMenu = null;
     private static SharedPreferences preferences = null;
     private static String mUUID = null;
-    private static boolean connected = false;
     private static boolean loaded = false;
-    private static View mRootView = null;
+    private static PluggableCallbacks mCallbacks = null;
 
-    private static Socket mSocket;
+    private static SocketSingleton mSocket;
 
     private static void putLocationAndSize(final View view, final JSONObject object) throws JSONException {
         int[] outLocation = new int[2];
@@ -120,8 +116,12 @@ public class Pluggable {
 
         @Override
         public void afterTextChanged(Editable editable) {
-            if (mRootView != null) {
-                reRender(mRootView);
+            try {
+                TimeUnit.MILLISECONDS.sleep(500);
+                reRender();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+                reRender();
             }
         }
     };
@@ -170,33 +170,31 @@ public class Pluggable {
         return object;
     }
 
-    public static void reRender(final View rootView) {
+    public static void reRender() {
         IDs = new HashMap<>();
 
         if (loaded) {
             try {
-                JSONObject object = serialize(rootView);
-                Log.d(TAG, "plug: " + object.toString());
+                JSONObject object = serialize(mCallbacks.getRootView());
 
-                if (mSocket != null && mSocket.connected()) {
+                if (mSocket != null) {
                     mSocket.emit("reRender", object, mUUID);
                 }
             } catch (JSONException e) {
                 e.printStackTrace();
             }
         } else {
-            ViewTreeObserver observer = rootView.getViewTreeObserver();
+            ViewTreeObserver observer = mCallbacks.getRootView().getViewTreeObserver();
             if (observer.isAlive()) {
                 observer.addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
                     @Override
                     public void onGlobalLayout() {
-                        rootView.getViewTreeObserver().removeOnGlobalLayoutListener(this);
+                        mCallbacks.getRootView().getViewTreeObserver().removeOnGlobalLayoutListener(this);
 
                         try {
-                            JSONObject object = serialize(rootView);
-                            Log.d(TAG, "plug: " + object.toString());
+                            JSONObject object = serialize(mCallbacks.getRootView());
 
-                            if (mSocket != null && mSocket.connected()) {
+                            if (mSocket != null) {
                                 mSocket.emit("reRender", object, mUUID);
                             }
 
@@ -208,53 +206,66 @@ public class Pluggable {
                 });
             }
         }
-
-        runSocketEvents(rootView);
     }
 
-    private static void runSocketEvents(final View rootView) {
+    private static void runSocketEvents() {
         if (mSocket != null) {
-            mSocket.on("event", new Emitter.Listener() {
+            mSocket.on("myEvent", new Emitter.Listener() {
                 @Override
-                public void call(Object... args) {
-                    JSONObject data = (JSONObject) args[0];
+                public void call(final Object... args) {
+                    Log.d(TAG, "tihngs, excitement");
+                    mCallbacks.getActivity().runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            Log.d(TAG, "run: I here");
+                            JSONObject data = (JSONObject) args[0];
 
-                    String type = data.optString("type", "click");
-                    String id = data.optString("id", null);
+                            String type = data.optString("type", "click");
+                            String id = data.optString("id", null);
 
-                    if (id != null && IDs.containsKey(id)) {
-                        switch (type) {
-                            case "move":
-                                ListView listView = rootView.findViewById(IDs.get(id));
-                                //listView.
-                                break;
-                            case "text":
-                                EditText editText = rootView.findViewById(IDs.get(id));
-                                editText.setText(data.optString("text", editText.getText().toString()));
-                                break;
-                            default:
-                                View view = rootView.findViewById(IDs.get(id));
-                                view.performClick();
+                            if (id != null && IDs.containsKey(id)) {
+                                switch (type) {
+                                    case "move":
+                                        ListView listView = mCallbacks.getRootView().findViewById(IDs.get(id));
+                                        //listView.
+                                        break;
+                                    case "text":
+                                        EditText editText = mCallbacks.getRootView().findViewById(IDs.get(id));
+                                        editText.removeTextChangedListener(watcher);
+                                        editText.setText(data.optString("text", editText.getText().toString()));
+                                        editText.addTextChangedListener(watcher);
+                                        break;
+                                    default:
+                                        View view = mCallbacks.getRootView().findViewById(IDs.get(id));
+                                        view.performClick();
+                                        reRender();
+                                }
+                            }
+
                         }
-                    }
+                    });
                 }
             });
         }
     }
 
-    public static void plug(Activity activity, final View rootView) {
-        preferences = activity.getPreferences(Context.MODE_PRIVATE);
+    public static void plug(PluggableCallbacks callbacks) {
+        preferences = callbacks.getActivity().getPreferences(Context.MODE_PRIVATE);
         if (preferences.contains("uuid")) {
             mUUID = preferences.getString("uuid", null);
         }
 
-        mRootView = rootView;
-        reRender(rootView);
+        mSocket = SocketSingleton.getInstance();
+        mCallbacks = callbacks;
+
+        reRender();
+        runSocketEvents();
     }
 
-    public static void unplug(Activity activity) {
+    public static void unplug() {
         loaded = false;
-        mRootView = null;
+
+        mCallbacks = null;
     }
 
     public static boolean initiateMenu(Activity activity, Menu menu) {
@@ -280,18 +291,6 @@ public class Pluggable {
                         JSONObject data = new JSONObject();
 
                         try {
-                            mSocket = IO.socket(URL).connect();
-                            mSocket.on(Socket.EVENT_CONNECT, new Emitter.Listener() {
-                                @Override
-                                public void call(Object... args) {
-                                }
-                            });
-                            mSocket.on(Socket.EVENT_CONNECT_ERROR, new Emitter.Listener() {
-                                @Override
-                                public void call(Object... args) {
-                                }
-                            });
-
                             UUID uuid = UUID.randomUUID();
 
                             data.put("uuid", uuid.toString());
@@ -311,8 +310,6 @@ public class Pluggable {
                             mMenu.getItem(2).setVisible(false);
                         } catch (JSONException e) {
                             e.printStackTrace();
-                        } catch (URISyntaxException e) {
-                            e.printStackTrace();
                         }
                     }
 
@@ -325,27 +322,8 @@ public class Pluggable {
                 dialog.show(activity.getFragmentManager(), "IssueDialog");
                 return true;
             case R.id.startConnection:
-                if (mSocket == null || !mSocket.connected()) {
-                    try {
-                        mSocket = IO.socket(URL).connect();
-                        mSocket.on(Socket.EVENT_CONNECT, new Emitter.Listener() {
-                            @Override
-                            public void call(Object... args) {
-                            }
-                        });
-                        mSocket.on(Socket.EVENT_CONNECT_ERROR, new Emitter.Listener() {
-                            @Override
-                            public void call(Object... args) {
-                            }
-                        });
-                    } catch (URISyntaxException e) {
-                        e.printStackTrace();
-                    }
-                }
-
-                if (mSocket != null && mSocket.connected()) {
+                if (mSocket != null) {
                     mSocket.emit("createSession", mUUID);
-                    connected = true;
 
                     mMenu.getItem(0).setVisible(false);
                     mMenu.getItem(1).setVisible(false);
@@ -355,9 +333,6 @@ public class Pluggable {
                 return true;
             case R.id.endConnection:
                 mSocket.emit("endSession", mUUID);
-                connected = false;
-
-                mSocket.disconnect();
 
                 mMenu.getItem(0).setVisible(true);
                 mMenu.getItem(1).setVisible(false);
@@ -367,5 +342,10 @@ public class Pluggable {
             default:
                 return false;
         }
+    }
+
+    public interface PluggableCallbacks {
+        Activity getActivity();
+        View getRootView();
     }
 }

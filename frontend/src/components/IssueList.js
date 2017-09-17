@@ -20,7 +20,7 @@ class IssueList extends Component {
     this.socket.on('connectToSessionRes', (res) => {
       if (res) {
         console.log('can connect to session')
-        props.showAndroidRender();
+        props.showAndroidRender(this.selectedUuid);
       }else{
         console.log("Can't connect to session as requested by server");
       }
@@ -42,6 +42,7 @@ class IssueList extends Component {
   cellClicked(row, column){
     var issue = this.state.issues[row];
     this.connectToSession(issue.uuid)
+    this.selectedUuid = issue.uuid;
   }
 
   connectToSession(uuid) {
