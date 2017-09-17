@@ -35,4 +35,8 @@ class SocketSingleton {
     void emit(String emit, Object... objects) {
         this.socket.emit(emit, objects);
     }
+
+    void off(String event, Emitter.Listener fn) {
+        this.socket.off(event, fn);
+    }
 }

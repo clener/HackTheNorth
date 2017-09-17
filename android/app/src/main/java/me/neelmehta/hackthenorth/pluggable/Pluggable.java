@@ -208,44 +208,84 @@ public class Pluggable {
         }
     }
 
-    private static void runSocketEvents() {
-        if (mSocket != null) {
-            mSocket.on("myEvent", new Emitter.Listener() {
+    private static Emitter.Listener fn = new Emitter.Listener() {
+        @Override
+        public void call(final Object... args) {
+            mCallbacks.getActivity().runOnUiThread(new Runnable() {
                 @Override
-                public void call(final Object... args) {
-                    Log.d(TAG, "tihngs, excitement");
-                    mCallbacks.getActivity().runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            Log.d(TAG, "run: I here");
-                            JSONObject data = (JSONObject) args[0];
+                public void run() {
+                    JSONObject data = (JSONObject) args[0];
+                    Log.d(TAG, "run: " + data.toString());
 
-                            String type = data.optString("type", "click");
-                            String id = data.optString("id", null);
+                    String type = data.optString("type", "click");
+                    String id = data.optString("id", null);
 
-                            if (id != null && IDs.containsKey(id)) {
-                                switch (type) {
-                                    case "move":
-                                        ListView listView = mCallbacks.getRootView().findViewById(IDs.get(id));
-                                        //listView.
-                                        break;
-                                    case "text":
-                                        EditText editText = mCallbacks.getRootView().findViewById(IDs.get(id));
-                                        editText.removeTextChangedListener(watcher);
-                                        editText.setText(data.optString("text", editText.getText().toString()));
-                                        editText.addTextChangedListener(watcher);
-                                        break;
-                                    default:
-                                        View view = mCallbacks.getRootView().findViewById(IDs.get(id));
-                                        view.performClick();
-                                        reRender();
+                    if (id != null && IDs.containsKey(id)) {
+                        switch (type) {
+                            case "move":
+                                ListView listView = mCallbacks.getRootView().findViewById(IDs.get(id));
+
+                                int time = data.optInt("time", 200);
+
+                                JSONObject startPosition = data.optJSONObject("startPosition");
+                                float startX = (float) startPosition.optDouble("x");
+                                float startY = (float) startPosition.optDouble("y");
+
+                                JSONObject endPosition = data.optJSONObject("endPosition");
+                                float endX = (float) endPosition.optDouble("x");
+                                float endY = (float) endPosition.optDouble("y");
+
+                                listView.smoothScrollBy(4 * (int) (startY - endY), time);
+
+                                try {
+                                    TimeUnit.MILLISECONDS.sleep(300);
+                                    reRender();
+                                } catch (InterruptedException e) {
+                                    e.printStackTrace();
+                                    reRender();
                                 }
-                            }
-
+                                break;
+                            case "text":
+                                EditText editText = mCallbacks.getRootView().findViewById(IDs.get(id));
+                                editText.removeTextChangedListener(watcher);
+                                editText.setText(data.optString("text", editText.getText().toString()));
+                                editText.addTextChangedListener(watcher);
+                                break;
+                            default:
+                                View view = mCallbacks.getRootView().findViewById(IDs.get(id));
+                                view.performClick();
+                                reRender();
                         }
-                    });
+                    }
+
                 }
             });
+        }
+    };
+
+    private static Emitter.Listener fn2 = new Emitter.Listener() {
+        @Override
+        public void call(Object... args) {
+            mCallbacks.getActivity().runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    reRender();
+                }
+            });
+        }
+    };
+
+    private static void runSocketEvents() {
+        if (mSocket != null) {
+            mSocket.on("myEvent", fn);
+            mSocket.on("connectToSessionRes", fn2);
+        }
+    }
+
+    private static void turnOffSocket() {
+        if (mSocket != null) {
+            mSocket.off("myEvent", fn);
+            mSocket.off("connectToSessionRes", fn2);
         }
     }
 
@@ -266,6 +306,7 @@ public class Pluggable {
         loaded = false;
 
         mCallbacks = null;
+        turnOffSocket();
     }
 
     public static boolean initiateMenu(Activity activity, Menu menu) {
@@ -346,6 +387,7 @@ public class Pluggable {
 
     public interface PluggableCallbacks {
         Activity getActivity();
+
         View getRootView();
     }
 }
