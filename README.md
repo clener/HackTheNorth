@@ -2,6 +2,8 @@
 
 This is the repository for Plugable, a project made at Hack the North 2017.
 
+[![Video of Project](http://img.youtube.com/vi/7hBXHtQEXkc/0.jpg)](http://www.youtube.com/watch?v=7hBXHtQEXkc)
+
 ### How to use
 To use this project you would have to run the webapp, the server and the mobile app. 
 
